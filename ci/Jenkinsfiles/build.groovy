@@ -132,6 +132,7 @@ def buildUnitTestStage(env) {
                       ci/mvn/nuxeo-test-elasticsearch.properties \
                       ci/mvn/nuxeo-test-s3.properties \
                       ci/mvn/nuxeo-test-gcp.properties \
+                      ci/mvn/nuxeo-test-azure.properties \
                       > ci/mvn/nuxeo-test-${env}.properties~gen
                     BUCKET_PREFIX=${bucketPrefix} \
                       TEST_BLOB_PROVIDER_PREFIX=${testBlobProviderPrefix} \
@@ -165,12 +166,14 @@ def buildUnitTestStage(env) {
                     // credentials rotation is disabled in platform-staging to prevent double rotation on the same keys
                     def awsAccessKeyId = nxK8s.getSecretData(namespace: 'platform', name: "${AWS_CREDENTIALS_SECRET}", key: 'access_key_id')
                     def awsSecretAccessKey = nxK8s.getSecretData(namespace: 'platform', name: "${AWS_CREDENTIALS_SECRET}", key: 'secret_access_key')
+                    def azureAccountKey = nxK8s.getSecretData(namespace: 'platform', name: "${AZURE_CREDENTIALS_SECRET}", key: 'account_key')
                     withEnv([
                       "AWS_ACCESS_KEY_ID=${awsAccessKeyId}",
                       "AWS_SECRET_ACCESS_KEY=${awsSecretAccessKey}",
                       "AWS_REGION=${AWS_REGION}",
                       "AWS_ROLE_ARN=${AWS_ROLE_ARN}",
-                      "GCP_CREDENTIALS_PATH=/home/jenkins/.config/gcloud/credentials.json"
+                      "GCP_CREDENTIALS_PATH=/home/jenkins/.config/gcloud/credentials.json",
+                      "AZURE_STORAGE_ACCESS_KEY=${azureAccountKey}"
                     ]) {
                       sh "${mvnCommand}"
                     }
@@ -236,6 +239,7 @@ pipeline {
     AWS_REGION = 'eu-west-3'
     AWS_ROLE_ARN= 'arn:aws:iam::783725821734:role/nuxeo-s3directupload-role'
     AWS_CREDENTIALS_SECRET = 'aws-credentials'
+    AZURE_CREDENTIALS_SECRET = 'azure-credentials'
     GITHUB_WORKFLOW_DOCKER_SCAN = 'docker-image-scan.yaml'
   }
 

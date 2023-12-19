@@ -5143,6 +5143,13 @@
             <nuxeo.test.gcp.bucket_prefix>${nuxeo.test.gcp.bucket_prefix}</nuxeo.test.gcp.bucket_prefix>
             <nuxeo.test.gcp.provider.test.bucket_prefix>${nuxeo.test.gcp.provider.test.bucket_prefix}</nuxeo.test.gcp.provider.test.bucket_prefix>
             <nuxeo.test.gcp.provider.other.bucket_prefix>${nuxeo.test.gcp.provider.other.bucket_prefix}</nuxeo.test.gcp.provider.other.bucket_prefix>
+            <nuxeo.test.azure.account.name>${nuxeo.test.azure.account.name}</nuxeo.test.azure.account.name>
+            <nuxeo.test.azure.account.key>${nuxeo.test.azure.account.key}</nuxeo.test.azure.account.key>
+            <nuxeo.test.azure.container>${nuxeo.test.azure.container}</nuxeo.test.azure.container>
+            <nuxeo.test.azure.prefix>${nuxeo.test.azure.prefix}</nuxeo.test.azure.prefix>
+            <nuxeo.test.azure.provider.test.prefix>${nuxeo.test.azure.provider.test.prefix}</nuxeo.test.azure.provider.test.prefix>
+            <nuxeo.test.azure.provider.other.prefix>${nuxeo.test.azure.provider.other.prefix}</nuxeo.test.azure.provider.other.prefix>
+
           </systemPropertyVariables>
           <includes>
             <include>**/Test*.java</include>
