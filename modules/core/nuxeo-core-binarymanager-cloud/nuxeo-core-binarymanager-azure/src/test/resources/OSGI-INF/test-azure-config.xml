@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.blob.azure.test">
+
+  <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
+    <blobprovider name="test">
+      <class>org.nuxeo.ecm.blob.azure.AzureBlobProvider</class>
+      <property name="account.name">${nuxeo.test.azure.account.name}</property>
+      <property name="account.key">${nuxeo.test.azure.account.key}</property>
+      <property name="container">${nuxeo.test.azure.provider.test.container}</property>
+      <property name="prefix">${nuxeo.test.azure.provider.test.prefix}</property>
+      <property name="allowByteRange">true</property>
+    </blobprovider>
+    <blobprovider name="other">
+      <class>org.nuxeo.ecm.blob.azure.AzureBlobProvider</class>
+      <property name="account.name">${nuxeo.test.azure.account.name}</property>
+      <property name="account.key">${nuxeo.test.azure.account.key}</property>
+      <property name="container">${nuxeo.test.azure.provider.other.container}</property>
+      <property name="prefix">${nuxeo.test.azure.provider.other.prefix}</property>
+      <property name="allowByteRange">true</property>
+    </blobprovider>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.blob.DocumentBlobManager" point="configuration">
+    <blobdispatcher>
+      <property name="default">test</property>
+      <property name="dc:source=foo">other</property>
+    </blobdispatcher>
+  </extension>
+
+</component>
