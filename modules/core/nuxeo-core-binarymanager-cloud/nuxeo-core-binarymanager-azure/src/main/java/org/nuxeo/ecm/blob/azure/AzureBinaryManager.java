@@ -19,6 +19,9 @@
 
 package org.nuxeo.ecm.blob.azure;
 
+import static org.nuxeo.ecm.blob.azure.AzureBlobStoreConfiguration.AZURE_STORAGE_ACCESS_KEY_ENV_VAR;
+import static org.nuxeo.ecm.blob.azure.AzureBlobStoreConfiguration.AZURE_STORAGE_ACCOUNT_ENV_VAR;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -64,9 +67,9 @@ public class AzureBinaryManager extends AbstractCloudBinaryManager {
 
     public static final String SYSTEM_PROPERTY_PREFIX = "nuxeo.storage.azure";
 
-    public static final String ACCOUNT_NAME_PROPERTY = "account.name";
+    public static final String ACCOUNT_NAME_PROPERTY = AzureBlobStoreConfiguration.ACCOUNT_NAME_PROPERTY;
 
-    public static final String ACCOUNT_KEY_PROPERTY = "account.key";
+    public static final String ACCOUNT_KEY_PROPERTY = AzureBlobStoreConfiguration.ACCOUNT_KEY_PROPERTY;
 
     public static final String CONTAINER_PROPERTY = "container";
 
@@ -88,9 +91,9 @@ public class AzureBinaryManager extends AbstractCloudBinaryManager {
 
     @Override
     protected void setupCloudClient() throws IOException {
-        if (StringUtils.isBlank(properties.get(AzureBinaryManager.ACCOUNT_KEY_PROPERTY))) {
-            properties.put(AzureBinaryManager.ACCOUNT_NAME_PROPERTY, System.getenv("AZURE_STORAGE_ACCOUNT"));
-            properties.put(AzureBinaryManager.ACCOUNT_KEY_PROPERTY, System.getenv("AZURE_STORAGE_ACCESS_KEY"));
+        if (StringUtils.isBlank(properties.get(ACCOUNT_KEY_PROPERTY))) {
+            properties.put(ACCOUNT_NAME_PROPERTY, System.getenv(AZURE_STORAGE_ACCOUNT_ENV_VAR));
+            properties.put(ACCOUNT_KEY_PROPERTY, System.getenv(AZURE_STORAGE_ACCESS_KEY_ENV_VAR));
         }
 
         String connectionString = String.format(STORAGE_CONNECTION_STRING,
