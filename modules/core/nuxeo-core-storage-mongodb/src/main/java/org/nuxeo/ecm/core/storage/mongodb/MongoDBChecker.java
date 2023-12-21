@@ -26,6 +26,7 @@ import org.bson.Document;
 import org.nuxeo.launcher.config.ConfigurationException;
 import org.nuxeo.launcher.config.ConfigurationHolder;
 import org.nuxeo.launcher.config.backingservices.BackingChecker;
+import org.nuxeo.log4j.Redactor;
 import org.nuxeo.runtime.mongodb.MongoDBConnectionConfig;
 import org.nuxeo.runtime.mongodb.MongoDBConnectionHelper;
 
@@ -67,7 +68,8 @@ public class MongoDBChecker implements BackingChecker {
             database.runCommand(ping);
         } catch (MongoTimeoutException e) {
             throw new ConfigurationException(
-                    String.format("Unable to connect to MongoDB at: %s, please check your connection", config.server),
+                    String.format("Unable to connect to MongoDB at: %s, please check your connection",
+                            new Redactor().maskSensitive(config.server)),
                     e);
         }
     }
