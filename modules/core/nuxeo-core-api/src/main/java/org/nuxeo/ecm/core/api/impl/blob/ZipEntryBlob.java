@@ -35,6 +35,7 @@ import org.apache.commons.io.input.ProxyInputStream;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CloseableFile;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.utils.ZipFileReader;
 
 /**
  * A {@link Blob} backed by an entry in a ZIP file.
@@ -98,7 +99,7 @@ public class ZipEntryBlob extends AbstractBlob implements Serializable {
             File file = zipBlob.getFile();
             if (file != null) {
                 // if there's a file then we can be fast
-                try (ZipFile zf = new ZipFile(file)) {
+                try (ZipFile zf = ZipFileReader.newZipFile(file)) {
                     ZipEntry entry = zf.getEntry(entryName);
                     return entry == null ? 0 : entry.getSize();
                 } catch (IOException e) {
@@ -146,7 +147,7 @@ public class ZipEntryBlob extends AbstractBlob implements Serializable {
             try {
                 CloseableFile closeableFile = zipBlob.getCloseableFile();
                 closeables.add(closeableFile);
-                ZipFile zipFile = new ZipFile(closeableFile.getFile());
+                ZipFile zipFile = ZipFileReader.newZipFile(closeableFile.getFile());
                 closeables.add(zipFile);
                 in = zipFile.getInputStream(zipFile.getEntry(entryName));
             } catch (IOException ioe) {

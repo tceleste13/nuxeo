@@ -57,6 +57,7 @@ import org.nuxeo.ecm.core.schema.types.primitives.DateType;
 import org.nuxeo.ecm.core.schema.types.primitives.IntegerType;
 import org.nuxeo.ecm.core.schema.types.primitives.LongType;
 import org.nuxeo.ecm.core.schema.types.primitives.StringType;
+import org.nuxeo.ecm.core.utils.ZipFileReader;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
 
 public class CSVZipImporter extends AbstractFileImporter {
@@ -71,7 +72,7 @@ public class CSVZipImporter extends AbstractFileImporter {
         ZipFile zip;
 
         try {
-            zip = new ZipFile(file);
+            zip = ZipFileReader.newZipFile(file);
         } catch (ZipException e) {
             log.debug("file is not a zipfile ! ", e);
             return null;

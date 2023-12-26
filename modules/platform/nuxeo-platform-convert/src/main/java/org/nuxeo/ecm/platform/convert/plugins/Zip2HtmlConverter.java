@@ -41,6 +41,7 @@ import org.nuxeo.ecm.core.api.impl.blob.ZipEntryBlob;
 import org.nuxeo.ecm.core.convert.api.ConversionException;
 import org.nuxeo.ecm.core.convert.extension.Converter;
 import org.nuxeo.ecm.core.convert.extension.ConverterDescriptor;
+import org.nuxeo.ecm.core.utils.ZipFileReader;
 
 /**
  * Zip2Html converter.
@@ -70,7 +71,7 @@ public class Zip2HtmlConverter implements Converter {
         File file = zipBlob.getFile();
         if (file != null) {
             // if there's a file then we can be fast
-            try (ZipFile zipFile = new ZipFile(file)) {
+            try (ZipFile zipFile = ZipFileReader.newZipFile(file)) {
                 zipFile.stream().forEach(entry -> names.add(entry.getName()));
             } catch (IOException e) {
                 throw new NuxeoException(e);

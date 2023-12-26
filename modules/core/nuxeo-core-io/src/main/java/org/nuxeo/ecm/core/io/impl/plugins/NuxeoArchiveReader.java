@@ -48,6 +48,7 @@ import org.nuxeo.ecm.core.io.ExportConstants;
 import org.nuxeo.ecm.core.io.ExportedDocument;
 import org.nuxeo.ecm.core.io.impl.AbstractDocumentReader;
 import org.nuxeo.ecm.core.io.impl.ExportedDocumentImpl;
+import org.nuxeo.ecm.core.utils.ZipFileReader;
 
 /**
  * Reads nuxeo archives generated using {@link NuxeoArchiveWriter}.
@@ -111,7 +112,7 @@ public class NuxeoArchiveReader extends AbstractDocumentReader {
      * @param file a Zip archive
      */
     public NuxeoArchiveReader(File file) throws IOException {
-        this.zipFile = new ZipFile(file);
+        this.zipFile = ZipFileReader.newZipFile(file);
         buildOrderedZipIndex();
         checkMarker();
     }
