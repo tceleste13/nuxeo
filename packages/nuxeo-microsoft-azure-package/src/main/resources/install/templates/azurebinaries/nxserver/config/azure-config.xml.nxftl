@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<component name="org.nuxeo.storage.azure" version="1.0.0">
+
+  <require>default-repository-config</require>
+
+  <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
+    <blobprovider name="default">
+      <class>${nuxeo.core.binarymanager}</class>
+      <property name="account.name">${nuxeo.storage.azure.account.name}</property>
+      <property name="account.key">${nuxeo.storage.azure.account.key}</property>
+      <property name="container">${nuxeo.storage.azure.container}</property>
+      <property name="prefix">${nuxeo.storage.azure.prefix}</property>
+      <property name="endpointProtocol">${nuxeo.storage.azure.endpointProtocol}</property>
+      <property name="cachesize">${nuxeo.storage.azure.cachesize}</property>
+      <property name="cdn.host">${nuxeo.storage.azure.cdn.host}</property>
+    </blobprovider>
+  </extension>
+
+</component>
