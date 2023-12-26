@@ -43,6 +43,7 @@ import org.nuxeo.ecm.core.io.ExportedDocument;
 import org.nuxeo.ecm.core.io.impl.DocumentPipeImpl;
 import org.nuxeo.ecm.core.io.impl.plugins.DocumentModelWriter;
 import org.nuxeo.ecm.core.io.impl.plugins.NuxeoArchiveReader;
+import org.nuxeo.ecm.core.utils.ZipFileReader;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
 
 /**
@@ -66,7 +67,7 @@ public class ExportedZipImporter extends AbstractFileImporter {
         ZipFile zip;
 
         try {
-            zip = new ZipFile(file);
+            zip = ZipFileReader.newZipFile(file);
         } catch (ZipException e) {
             log.debug("file is not a zipfile ! ", e);
             return null;

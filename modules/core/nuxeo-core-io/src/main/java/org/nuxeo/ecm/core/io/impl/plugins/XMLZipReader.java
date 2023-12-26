@@ -34,6 +34,7 @@ import org.nuxeo.ecm.core.io.ExportConstants;
 import org.nuxeo.ecm.core.io.ExportedDocument;
 import org.nuxeo.ecm.core.io.impl.AbstractDocumentReader;
 import org.nuxeo.ecm.core.io.impl.ExportedDocumentImpl;
+import org.nuxeo.ecm.core.utils.ZipFileReader;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -47,11 +48,11 @@ public class XMLZipReader extends AbstractDocumentReader {
     }
 
     public XMLZipReader(String source) throws IOException {
-        this(new ZipFile(source));
+        this(ZipFileReader.newZipFile(source));
     }
 
     public XMLZipReader(File source) throws IOException {
-        this(new ZipFile(source));
+        this(ZipFileReader.newZipFile(source));
     }
 
     @Override

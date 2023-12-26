@@ -29,7 +29,13 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
+@RunWith(FeaturesRunner.class)
+@Features(RuntimeFeature.class)
 public class TestDetector {
 
     private static File getFileFromTestResource(String resource) {

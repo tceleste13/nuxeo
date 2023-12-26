@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.zip.file.reader.fallback.config">
+  <extension target="org.nuxeo.runtime.ConfigurationService" point="configuration">
+    <property name="org.nuxeo.ecm.zip.file.reader.charset.fallback">cp850</property>
+  </extension>
+</component>

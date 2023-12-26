@@ -30,6 +30,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.nuxeo.common.utils.ZipUtils;
+import org.nuxeo.ecm.core.utils.ZipFileReader;
 import org.nuxeo.runtime.api.Framework;
 
 import net.sf.jmimemagic.MagicDetector;
@@ -108,7 +109,7 @@ public class OOoMimetypeSniffer implements MagicDetector {
         String[] mimetype = {};
         File tempFile = null;
 
-        try (ZipFile zip = new ZipFile(file)) {
+        try (ZipFile zip = ZipFileReader.newZipFile(file)) {
             ZipEntry entry = zip.getEntry("mimetype");
 
             if (entry != null) {
