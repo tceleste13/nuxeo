@@ -43,9 +43,9 @@ import org.nuxeo.ecm.core.convert.extension.Converter;
 
 public class XLX2TextConverter extends BaseOfficeXMLTextConverter implements Converter {
 
-    private static final String CELL_SEP = " ";
+    protected static final String CELL_SEP = " ";
 
-    private static final String ROW_SEP = "\n";
+    protected static final String ROW_SEP = "\n";
 
     @Override
     public BlobHolder convert(BlobHolder blobHolder, Map<String, Serializable> parameters) {
