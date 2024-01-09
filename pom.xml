@@ -158,6 +158,7 @@
     <amqp.client.version>5.20.0</amqp.client.version>
     <maven.surefire.version>2.22.2</maven.surefire.version>
     <opencensus.version>0.31.1</opencensus.version>
+    <prometheus.client.version>0.11.0</prometheus.client.version>
     <okhttp.version>4.12.0</okhttp.version>
     <protobuf.java.version>3.25.1</protobuf.java.version>
     <opensaml.version>4.3.0</opensaml.version>
@@ -4165,7 +4166,12 @@
       <dependency>
         <groupId>io.prometheus</groupId>
         <artifactId>simpleclient_httpserver</artifactId>
-        <version>0.16.0</version>
+        <version>${prometheus.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>simpleclient</artifactId>
+        <version>${prometheus.client.version}</version>
       </dependency>
       <!-- transitive dependencies of opencensus-exporter-trace-jaeger to upgrade -->
       <dependency>

@@ -66,7 +66,7 @@ public class PrometheusReporter extends AbstractMetricsReporter {
         try {
             PrometheusStatsCollector.createAndRegister();
         } catch (IllegalArgumentException e) {
-            log.warn("Prometheus collector already registered");
+            log.warn("Prometheus collector already registered", e);
         }
         try {
             server = new HTTPServer(port, true);
