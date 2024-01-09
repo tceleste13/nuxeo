@@ -101,6 +101,10 @@ updates:
         versions: ["[4.3,)"]
       - dependency-name: "org.jgrapht:jgrapht-core"
         versions: ["[1.1,)"]
+      - dependency-name: "io.prometheus:simpleclient"
+        versions: ["[0.12,)"]
+      - dependency-name: "io.prometheus:simpleclient_httpserver"
+        versions: ["[0.12,)"]
 
       # Patch version update breaking compilation
       - dependency-name: "org.apache.directory.server:*"
