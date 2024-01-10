@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.nuxeo.common.utils.FileUtils;
@@ -52,7 +53,8 @@ public abstract class AbstractConverterTest {
         return new SimpleBlobHolder(blob);
     }
 
-    protected String doTestTextConverter(String srcMT, String converter, String fileName) throws IOException {
+    protected String doTestTextConverter(String srcMT, String converter, String fileName,
+            Consumer<String> assertionsToMake) throws IOException {
         ConversionService cs = Framework.getService(ConversionService.class);
         String converterName = cs.getConverterName(srcMT, "text/plain");
         assertEquals(converter, converterName);
@@ -70,8 +72,12 @@ public abstract class AbstractConverterTest {
         assertNotNull(result);
 
         String textContent = result.getBlob().getString();
-        checkTextConversion(textContent);
+        assertOrCheck(assertionsToMake, textContent);
         return textContent;
+    }
+
+    protected String doTestTextConverter(String srcMT, String converter, String fileName) throws IOException {
+        return doTestTextConverter(srcMT, converter, fileName, null);
     }
 
     /**
@@ -133,6 +139,14 @@ public abstract class AbstractConverterTest {
         String textContent = result.getBlob().getString();
         checkArabicConversion(textContent);
         return textContent;
+    }
+
+    protected void assertOrCheck(Consumer<String> assertionsToMake, String textContent) {
+        if (assertionsToMake != null) {
+            assertionsToMake.accept(textContent);
+        } else {
+            checkTextConversion(textContent);
+        }
     }
 
     protected abstract void checkTextConversion(String textContent);

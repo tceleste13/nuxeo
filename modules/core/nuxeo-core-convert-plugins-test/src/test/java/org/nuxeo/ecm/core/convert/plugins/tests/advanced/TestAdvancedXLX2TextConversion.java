@@ -38,31 +38,27 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Features(CoreFeature.class)
 public class TestAdvancedXLX2TextConversion extends SimpleConverterTest {
 
-    protected Consumer<String[]> assertionsToMake;
-
     @Test
     public void testCellSeparator() throws Exception {
-        assertionsToMake = (cells -> {
-            assertEquals(2, cells.length);
-            assertArrayEquals(cells, new String[] { "hello", "world" });
-        });
         doTestTextConverter("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlx2text",
                 "advanced/cell_separator.xlsx");
     }
 
     @Test
     public void testFormulaValue() throws Exception {
-        assertionsToMake = (cells -> {
+        Consumer<String> assertionsToMake = (textContent -> {
+            String[] cells = textContent.trim().split(" ");
             assertEquals(2, cells.length);
             assertArrayEquals(cells, new String[] { "900.0", "70.0" });
         });
         doTestTextConverter("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlx2text",
-                "advanced/formula_value.xlsx");
+                "advanced/formula_value.xlsx", assertionsToMake);
     }
 
     @Override
     protected void checkTextConversion(String textContent) {
         String[] cells = textContent.trim().split(" ");
-        assertionsToMake.accept(cells);
+        assertEquals(2, cells.length);
+        assertArrayEquals(cells, new String[] { "hello", "world" });
     }
 }
