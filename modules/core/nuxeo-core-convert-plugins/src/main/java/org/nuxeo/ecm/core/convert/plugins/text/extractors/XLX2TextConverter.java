@@ -25,10 +25,11 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -42,6 +43,8 @@ import org.nuxeo.ecm.core.convert.cache.SimpleCachableBlobHolder;
 import org.nuxeo.ecm.core.convert.extension.Converter;
 
 public class XLX2TextConverter extends BaseOfficeXMLTextConverter implements Converter {
+
+    private static final Logger log = LogManager.getLogger(XLX2TextConverter.class);
 
     protected static final String CELL_SEP = " ";
 
@@ -83,14 +86,18 @@ public class XLX2TextConverter extends BaseOfficeXMLTextConverter implements Con
     }
 
     protected void appendTextFromCell(XSSFCell cell, StringBuilder sb) {
-        String cellValue = null;
-        if (CellType.NUMERIC.equals(cell.getCellType())) {
-            cellValue = Double.toString(cell.getNumericCellValue()).trim();
-        } else {
-            cellValue = cell.getStringCellValue().trim();
+        String cellValue;
+        switch (cell.getCellType()) {
+            case NUMERIC -> cellValue = Double.toString(cell.getNumericCellValue());
+            case STRING -> cellValue = cell.getStringCellValue().trim().replace("\n", " ");
+            default -> {
+                // Ignore formulas and other unknown cell types
+                cellValue = null;
+                log.debug("Skipping text from unsupported CellType: {}", cell.getCellType());
+            }
         }
 
-        if (cellValue != null && cellValue.length() > 0) {
+        if (cellValue != null && !cellValue.isBlank()) {
             sb.append(cellValue).append(CELL_SEP);
         }
     }
