@@ -28,8 +28,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -105,7 +107,8 @@ public class MakeBlob extends AbstractTransientBlobComputation {
         commands.forEach(commandId -> finishBlob(context, commandId));
         context.setTimer("check", System.currentTimeMillis() + CHECK_DELAY_MS);
         if (FLUSH_UNFINISHED_BLOBS_TIMER.equals(key) && !counters.isEmpty()) {
-            counters.keySet().forEach(commandId -> {
+            Set<String> commandIds = new HashSet<>(counters.keySet());
+            commandIds.forEach(commandId -> {
                 BulkService service = Framework.getService(BulkService.class);
                 BulkStatus status = service.getStatus(commandId);
                 BulkCommand command = service.getCommand(commandId);
