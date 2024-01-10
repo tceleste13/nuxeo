@@ -26,6 +26,8 @@ import org.nuxeo.ecm.core.blob.BlobStoreBlobProvider;
 import org.nuxeo.ecm.core.blob.CachingBlobStore;
 import org.nuxeo.ecm.core.blob.CachingConfiguration;
 import org.nuxeo.ecm.core.blob.DigestConfiguration;
+import org.nuxeo.ecm.core.blob.KeyStrategy;
+import org.nuxeo.ecm.core.blob.KeyStrategyDigest;
 
 /**
  * Blob provider that stores files in MongoDB GridFS.
@@ -50,7 +52,11 @@ public class GridFSBlobProvider extends BlobStoreBlobProvider {
     @Override
     protected BlobStore getBlobStore(String blobProviderId, Map<String, String> properties) throws IOException {
         digestConfiguration = new DigestConfiguration(SYSTEM_PROPERTY_PREFIX, properties);
-        BlobStore store = new GridFSBlobStore(blobProviderId, "GridFS", properties, getKeyStrategy());
+        KeyStrategy keyStrategy = getKeyStrategy();
+        if (!(keyStrategy instanceof KeyStrategyDigest)) {
+            throw new UnsupportedOperationException("GridFS Blob Provider only supports KeyStrategyDigest");
+        }
+        BlobStore store = new GridFSBlobStore(blobProviderId, "GridFS", properties, keyStrategy);
         boolean caching = properties.containsKey("nocache") ? Boolean.parseBoolean(properties.get("nocache")) : true;
         if (caching) {
             CachingConfiguration cachingConfiguration = new CachingConfiguration(SYSTEM_PROPERTY_PREFIX, properties);
