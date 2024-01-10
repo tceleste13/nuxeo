@@ -57,9 +57,6 @@ public class GoogleStorageBlobProvider extends BlobStoreBlobProvider {
         digestConfiguration = new DigestConfiguration(SYSTEM_PROPERTY_PREFIX, properties);
         KeyStrategy keyStrategy = getKeyStrategy();
         if (!(keyStrategy instanceof KeyStrategyDigest ksd)) {
-            // KeyStrategyDigest is the legacy strategy
-            // Let's start by supporting only this one
-            // KeyStrategyDocId can be added later on if there's the support retention and/or blob versioning
             throw new UnsupportedOperationException("Google Storage Blob Provider only supports KeyStrategyDigest");
         }
         BlobStore store = new GoogleStorageBlobStore(blobProviderId, "googleStorage", config, ksd);

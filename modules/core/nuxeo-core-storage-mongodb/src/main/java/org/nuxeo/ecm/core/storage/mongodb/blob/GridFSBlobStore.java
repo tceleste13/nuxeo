@@ -43,6 +43,7 @@ import org.nuxeo.ecm.core.blob.BlobContext;
 import org.nuxeo.ecm.core.blob.BlobStore;
 import org.nuxeo.ecm.core.blob.BlobWriteContext;
 import org.nuxeo.ecm.core.blob.KeyStrategy;
+import org.nuxeo.ecm.core.blob.KeyStrategyDigest;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.mongodb.MongoDBConnectionService;
@@ -191,7 +192,12 @@ public class GridFSBlobStore extends AbstractBlobStore {
             getFilesColl().find().forEach(dbFile -> {
                 status.sizeBinaries += dbFile.getLong(METADATA_PROPERTY_LENGTH);
                 status.numBinaries++;
-                toDelete.add((String) dbFile.get(METADATA_PROPERTY_FILENAME));
+                String digest = (String) dbFile.get(METADATA_PROPERTY_FILENAME);
+                if (!((KeyStrategyDigest) keyStrategy).isValidDigest(digest)) {
+                    // ignore blobs that cannot be digests, for safety
+                    return;
+                }
+                toDelete.add(digest);
                 if (toDelete.size() % WARN_OBJECTS_THRESHOLD == 0) {
                     log.warn("Listing {} in progress, {} objects ...", getId(), toDelete.size());
                 }

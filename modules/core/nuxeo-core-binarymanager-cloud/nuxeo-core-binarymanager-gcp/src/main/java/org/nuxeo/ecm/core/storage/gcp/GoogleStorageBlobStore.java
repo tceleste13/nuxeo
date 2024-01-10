@@ -46,6 +46,7 @@ import org.nuxeo.ecm.core.blob.BlobStore;
 import org.nuxeo.ecm.core.blob.BlobWriteContext;
 import org.nuxeo.ecm.core.blob.ByteRange;
 import org.nuxeo.ecm.core.blob.KeyStrategy;
+import org.nuxeo.ecm.core.blob.KeyStrategyDigest;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 
 import com.google.api.gax.paging.Page;
@@ -358,6 +359,10 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
             do {
                 for (Blob blob : blobs.iterateAll()) {
                     String digest = blob.getName().substring(prefixLength);
+                    if (!((KeyStrategyDigest) keyStrategy).isValidDigest(digest)) {
+                        // ignore blobs that cannot be digests, for safety
+                        continue;
+                    }
                     status.sizeBinaries += blob.getSize();
                     status.numBinaries++;
                     toDelete.add(digest);
