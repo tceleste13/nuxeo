@@ -31,6 +31,7 @@ import org.nuxeo.ecm.core.event.EventBundle;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.PostCommitEventListener;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
+import org.nuxeo.ecm.core.event.impl.ShallowDocumentModel;
 import org.nuxeo.ecm.platform.picture.PictureViewsHelper;
 import org.nuxeo.runtime.api.Framework;
 
@@ -65,6 +66,10 @@ public class PictureViewsGenerationListener implements PostCommitEventListener {
 
         DocumentEventContext docCtx = (DocumentEventContext) ctx;
         DocumentModel doc = docCtx.getSourceDocument();
+        if (doc instanceof ShallowDocumentModel) {
+            // ignore DeletedDocumentModel or unconnected document
+            return;
+        }
         if (doc.hasFacet(PICTURE_FACET) && pvh.hasPrefillPictureViews(doc) && !doc.isProxy()) {
             String query = "SELECT * FROM Document WHERE ecm:uuid='" + doc.getId() + "'";
             BulkService service = Framework.getService(BulkService.class);
