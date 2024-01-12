@@ -24,9 +24,7 @@ import static org.nuxeo.ecm.core.io.download.DownloadHelper.getContentTypeHeader
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.util.Date;
+import java.time.OffsetDateTime;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -42,10 +40,9 @@ import org.nuxeo.ecm.core.blob.KeyStrategy;
 import org.nuxeo.ecm.core.blob.KeyStrategyDigest;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import com.microsoft.azure.storage.blob.SharedAccessBlobHeaders;
-import com.microsoft.azure.storage.blob.SharedAccessBlobPolicy;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.sas.BlobSasPermission;
+import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 
 /**
  * Blob provider that stores files in Azure Storage.
@@ -103,7 +100,7 @@ public class AzureBlobProvider extends BlobStoreBlobProvider {
             return null;
         }
         String bucketKey = config.prefix + stripBlobKeyPrefix(blob.getKey());
-        Date expiration = new Date(System.currentTimeMillis() + config.directDownloadExpire * 1000);
+        long expiration = config.directDownloadExpire;
         if (StringUtils.isNotBlank(config.cdnHost)) {
             return getURICDN(bucketKey, blob, expiration);
         } else {
@@ -114,8 +111,8 @@ public class AzureBlobProvider extends BlobStoreBlobProvider {
     /**
      * Gets a URI for the given blob for direct download via CDN.
      */
-    protected URI getURICDN(String key, ManagedBlob blob, Date expiration) throws IOException {
-        URI azure = getURIAzure(key, blob, expiration);
+    protected URI getURICDN(String key, ManagedBlob blob, long downloadExpireSeconds) throws IOException {
+        URI azure = getURIAzure(key, blob, downloadExpireSeconds);
         String cdn = azure.toString().replace(azure.getHost(), config.cdnHost);
         return URI.create(cdn);
     }
@@ -123,23 +120,21 @@ public class AzureBlobProvider extends BlobStoreBlobProvider {
     /**
      * Gets a URI for the given blob for direct download.
      */
-    protected URI getURIAzure(String key, ManagedBlob blob, Date expiration) throws IOException {
-        try {
-            CloudBlockBlob blockBlobReference = config.container.getBlockBlobReference(key);
-            SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
-            policy.setPermissionsFromString("r");
+    protected URI getURIAzure(String key, ManagedBlob blob, long downloadExpireSeconds) throws IOException {
+        BlobClient blobClient = config.client.getBlobClient(key);
 
-            policy.setSharedAccessExpiryTime(expiration);
+        // specify token properties
+        BlobSasPermission permissions = BlobSasPermission.parse("r");
 
-            SharedAccessBlobHeaders headers = new SharedAccessBlobHeaders();
-            headers.setContentDisposition(encodeContentDisposition(blob.getFilename(), false, null));
-            headers.setContentType(getContentTypeHeader(blob));
+        OffsetDateTime expiryTime = OffsetDateTime.now().plusSeconds(downloadExpireSeconds);
 
-            String sas = blockBlobReference.generateSharedAccessSignature(policy, headers, null);
-            return URI.create(blockBlobReference.getUri() + "?" + sas);
-        } catch (URISyntaxException | InvalidKeyException | StorageException e) {
-            throw new IOException(e);
-        }
+        // build the token
+        BlobServiceSasSignatureValues sasSignatureValues = new BlobServiceSasSignatureValues(expiryTime, permissions);
+        sasSignatureValues.setContentDisposition(encodeContentDisposition(blob.getFilename(), false, null));
+        sasSignatureValues.setContentType(getContentTypeHeader(blob));
+        String sas = blobClient.generateSas(sasSignatureValues);
+
+        return URI.create(blobClient.getBlobUrl() + "?" + sas);
     }
 
 }

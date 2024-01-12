@@ -19,20 +19,10 @@
 
 package org.nuxeo.ecm.blob.azure;
 
-import java.net.URISyntaxException;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.regex.Pattern;
 
 import org.nuxeo.ecm.blob.AbstractBinaryGarbageCollector;
-import org.nuxeo.ecm.core.api.NuxeoException;
-
-import com.microsoft.azure.storage.ResultContinuation;
-import com.microsoft.azure.storage.ResultSegment;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.BlobListingDetails;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import com.microsoft.azure.storage.blob.ListBlobItem;
 
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
@@ -48,7 +38,7 @@ public class AzureGarbageCollector extends AbstractBinaryGarbageCollector<AzureB
 
     @Override
     public String getId() {
-        return "azure:" + binaryManager.container.getName();
+        return "azure:" + binaryManager.client.getBlobContainerName();
     }
 
     /**
@@ -57,37 +47,20 @@ public class AzureGarbageCollector extends AbstractBinaryGarbageCollector<AzureB
     @Override
     public void computeToDelete() {
         toDelete = new HashSet<>();
-        ResultContinuation continuationToken = null;
-        ResultSegment<ListBlobItem> lbs;
-        do {
-            try {
-                lbs = binaryManager.container.listBlobsSegmented(binaryManager.prefix, false,
-                        EnumSet.noneOf(BlobListingDetails.class), null, continuationToken, null, null);
-            } catch (StorageException e) {
-                throw new NuxeoException(e);
-            }
-
-            // ignore subdirectories by considering only instances of CloudBlockBlob
-            lbs.getResults().stream().filter(CloudBlockBlob.class::isInstance).forEach(item -> {
-                CloudBlockBlob blob = (CloudBlockBlob) item;
-
-                String name = blob.getName();
-                String digest = name.substring(binaryManager.prefix.length());
-
-                if (!isMD5(digest)) {
-                    // ignore files that cannot be MD5 digests for
-                    // safety
-                    return;
-                }
-
-                long length = blob.getProperties().getLength();
-                status.sizeBinaries += length;
-                status.numBinaries++;
-                toDelete.add(digest);
-            });
-
-            continuationToken = lbs.getContinuationToken();
-        } while (lbs.getHasMoreResults());
+        binaryManager.client.listBlobsByHierarchy(binaryManager.prefix)
+                            .forEach(blob -> {
+                                String name = blob.getName();
+                                String digest = name.substring(binaryManager.prefix.length());
+                                if (!isMD5(digest)) {
+                                    // ignore files that cannot be MD5 digests for
+                                    // safety
+                                    return;
+                                }
+                                long length = blob.getProperties().getContentLength();
+                                status.sizeBinaries += length;
+                                status.numBinaries++;
+                                toDelete.add(digest);
+                            });
     }
 
     /**
@@ -96,21 +69,17 @@ public class AzureGarbageCollector extends AbstractBinaryGarbageCollector<AzureB
     @Override
     protected void removeUnmarkedBlobsAndUpdateStatus(boolean delete) {
         for (String digest : toDelete) {
-            try {
-                long length = binaryManager.lengthOfBlob(digest);
-                if (length < 0) {
-                    // shouldn't happen except if blob concurrently removed
-                    continue;
-                }
-                status.sizeBinariesGC += length;
-                status.numBinariesGC++;
-                status.sizeBinaries -= length;
-                status.numBinaries--;
-                if (delete) {
-                    binaryManager.removeBinary(digest);
-                }
-            } catch (URISyntaxException | StorageException e) {
-                throw new NuxeoException(e);
+            long length = binaryManager.lengthOfBlob(digest);
+            if (length < 0) {
+                // shouldn't happen except if blob concurrently removed
+                continue;
+            }
+            status.sizeBinariesGC += length;
+            status.numBinariesGC++;
+            status.sizeBinaries -= length;
+            status.numBinaries--;
+            if (delete) {
+                binaryManager.removeBinary(digest);
             }
         }
     }

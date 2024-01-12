@@ -19,8 +19,6 @@
 package org.nuxeo.ecm.blob.azure;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -28,10 +26,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.blob.CloudBlobStoreConfiguration;
 
-import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.CloudBlobClient;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobContainerClientBuilder;
+import com.azure.storage.common.StorageSharedKeyCredential;
 
 /**
  * Blob storage configuration in Azure Storage.
@@ -58,22 +55,17 @@ public class AzureBlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     public static final String PREFIX_PROPERTY = "prefix";
 
-    private static final String STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=%s;" + "AccountName=%s;"
-            + "AccountKey=%s";
-
     public static final String SYSTEM_PROPERTY_PREFIX = "nuxeo.storage.azure";
 
-    protected final CloudBlobClient blobClient;
+    public static final String DELIMITER = "/";
 
     protected final String cdnHost;
-
-    protected final CloudBlobContainer container;
 
     protected final String containerName;
 
     protected String prefix;
 
-    protected final CloudStorageAccount storageAccount;
+    protected BlobContainerClient client;
 
     public AzureBlobStoreConfiguration(Map<String, String> properties) throws IOException {
         super(SYSTEM_PROPERTY_PREFIX, properties);
@@ -82,21 +74,17 @@ public class AzureBlobStoreConfiguration extends CloudBlobStoreConfiguration {
             properties.put(ACCOUNT_KEY_PROPERTY, System.getenv(AZURE_STORAGE_ACCESS_KEY_ENV_VAR));
         }
         cdnHost = getProperty(AZURE_CDN_PROPERTY);
-        String connectionString = String.format(STORAGE_CONNECTION_STRING,
-                getProperty(ENDPOINT_PROTOCOL_PROPERTY, "https"), getProperty(ACCOUNT_NAME_PROPERTY),
-                getProperty(ACCOUNT_KEY_PROPERTY));
         containerName = getProperty(CONTAINER_PROPERTY);
-        try {
-            storageAccount = CloudStorageAccount.parse(connectionString);
-
-            blobClient = storageAccount.createCloudBlobClient();
-            container = blobClient.getContainerReference(containerName);
-            container.createIfNotExists();
-        } catch (URISyntaxException | InvalidKeyException | StorageException e) {
-            throw new IOException("Unable to initialize Azure blob provider", e);
-        }
-        prefix = getProperty(PREFIX_PROPERTY, "");
-        String delimiter = blobClient.getDirectoryDelimiter();
+        String accountName = getProperty(ACCOUNT_NAME_PROPERTY);
+        // accountName and containerName are conf properties, not user inputs, no need to sanitize
+        String endpoint = String.format("https://%s.blob.core.windows.net/%s", accountName, containerName);
+        client = new BlobContainerClientBuilder().endpoint(endpoint)
+                                                 .credential(new StorageSharedKeyCredential(accountName,
+                                                         getProperty(ACCOUNT_KEY_PROPERTY)))
+                                                 .buildClient();
+        client.createIfNotExists();
+        prefix = StringUtils.defaultIfBlank(properties.get(PREFIX_PROPERTY), "");
+        String delimiter = DELIMITER;
         if (StringUtils.isNotBlank(prefix) && !prefix.endsWith(delimiter)) {
             log.warn("Azure container prefix ({}): {} should end with '{}': added automatically.", PREFIX_PROPERTY,
                     prefix, delimiter);

@@ -21,46 +21,34 @@ package org.nuxeo.ecm.blob.azure;
 
 import static org.nuxeo.ecm.blob.azure.AzureBlobStoreConfiguration.AZURE_STORAGE_ACCESS_KEY_ENV_VAR;
 import static org.nuxeo.ecm.blob.azure.AzureBlobStoreConfiguration.AZURE_STORAGE_ACCOUNT_ENV_VAR;
+import static org.nuxeo.ecm.blob.azure.AzureBlobStoreConfiguration.DELIMITER;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.OffsetDateTime;
 import java.util.Collection;
-import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.blob.AbstractCloudBinaryManager;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 import org.nuxeo.ecm.core.blob.binary.FileStorage;
 
-import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.CloudBlobClient;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import com.microsoft.azure.storage.blob.SharedAccessBlobHeaders;
-import com.microsoft.azure.storage.blob.SharedAccessBlobPolicy;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobContainerClientBuilder;
+import com.azure.storage.blob.sas.BlobSasPermission;
+import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
+import com.azure.storage.common.StorageSharedKeyCredential;
 
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
  * @since 7.10
  */
 public class AzureBinaryManager extends AbstractCloudBinaryManager {
-
-    private static final Logger log = LogManager.getLogger(AzureBinaryManager.class);
-
-    private static final String STORAGE_CONNECTION_STRING = "DefaultEndpointsProtocol=%s;" + "AccountName=%s;"
-            + "AccountKey=%s";
 
     public static final String ENDPOINT_PROTOCOL_PROPERTY = "endpointProtocol";
 
@@ -75,11 +63,7 @@ public class AzureBinaryManager extends AbstractCloudBinaryManager {
     /** @since 10.10 */
     public static final String PREFIX_PROPERTY = "prefix";
 
-    protected CloudStorageAccount storageAccount;
-
-    protected CloudBlobClient blobClient;
-
-    protected CloudBlobContainer container;
+    protected BlobContainerClient client;
 
     protected String prefix;
 
@@ -94,29 +78,24 @@ public class AzureBinaryManager extends AbstractCloudBinaryManager {
             properties.put(ACCOUNT_NAME_PROPERTY, System.getenv(AZURE_STORAGE_ACCOUNT_ENV_VAR));
             properties.put(ACCOUNT_KEY_PROPERTY, System.getenv(AZURE_STORAGE_ACCESS_KEY_ENV_VAR));
         }
-
-        String connectionString = String.format(STORAGE_CONNECTION_STRING,
-                getProperty(ENDPOINT_PROTOCOL_PROPERTY, "https"), getProperty(ACCOUNT_NAME_PROPERTY),
-                getProperty(ACCOUNT_KEY_PROPERTY));
-        try {
-            storageAccount = CloudStorageAccount.parse(connectionString);
-
-            blobClient = storageAccount.createCloudBlobClient();
-            container = blobClient.getContainerReference(getProperty(CONTAINER_PROPERTY));
-            container.createIfNotExists();
-        } catch (URISyntaxException | InvalidKeyException | StorageException e) {
-            throw new IOException("Unable to initialize Azure binary manager", e);
-        }
+        String containerName = getProperty(CONTAINER_PROPERTY);
+        String accountName = getProperty(ACCOUNT_NAME_PROPERTY);
+        // accountName and containerName are conf properties, not user inputs, no need to sanitize
+        String endpoint = String.format("https://%s.blob.core.windows.net/%s", accountName, containerName);
+        client = new BlobContainerClientBuilder().endpoint(endpoint)
+                                                 .credential(new StorageSharedKeyCredential(accountName,
+                                                         getProperty(ACCOUNT_KEY_PROPERTY)))
+                                                 .buildClient();
+        client.createIfNotExists();
         prefix = StringUtils.defaultIfBlank(properties.get(PREFIX_PROPERTY), "");
-        String delimiter = blobClient.getDirectoryDelimiter();
-        if (StringUtils.isNotBlank(prefix) && !prefix.endsWith(delimiter)) {
-            prefix += delimiter;
+        if (StringUtils.isNotBlank(prefix) && !prefix.endsWith(DELIMITER)) {
+            prefix += DELIMITER;
         }
         if (StringUtils.isNotBlank(namespace)) {
             // use namespace as an additional prefix
             prefix += namespace;
-            if (!prefix.endsWith(delimiter)) {
-                prefix += delimiter;
+            if (!prefix.endsWith(DELIMITER)) {
+                prefix += DELIMITER;
             }
         }
     }
@@ -128,32 +107,24 @@ public class AzureBinaryManager extends AbstractCloudBinaryManager {
 
     @Override
     protected FileStorage getFileStorage() {
-        return new AzureFileStorage(container, prefix);
+        return new AzureFileStorage(client, prefix);
     }
 
     @Override
     protected URI getRemoteUri(String digest, ManagedBlob blob, HttpServletRequest servletRequest) throws IOException {
-        try {
-            CloudBlockBlob blockBlobReference = container.getBlockBlobReference(digest);
-            SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
-            policy.setPermissionsFromString("r");
+        BlobClient blobClient = client.getBlobClient(digest);
 
-            Instant endDateTime = LocalDateTime.now()
-                                               .plusSeconds(directDownloadExpire)
-                                               .atZone(ZoneId.systemDefault())
-                                               .toInstant();
-            policy.setSharedAccessExpiryTime(Date.from(endDateTime));
+        BlobSasPermission permissions = new BlobSasPermission().setReadPermission(true);
 
-            SharedAccessBlobHeaders headers = new SharedAccessBlobHeaders();
-            headers.setContentDisposition(getContentDispositionHeader(blob, servletRequest));
-            headers.setContentType(getContentTypeHeader(blob));
+        OffsetDateTime expiryTime = OffsetDateTime.now().plusSeconds(directDownloadExpire);
 
-            String sas = blockBlobReference.generateSharedAccessSignature(policy, headers, null);
+        // build the token
+        BlobServiceSasSignatureValues sasSignatureValues = new BlobServiceSasSignatureValues(expiryTime, permissions);
+        sasSignatureValues.setContentDisposition(getContentDispositionHeader(blob, servletRequest));
+        sasSignatureValues.setContentType(getContentTypeHeader(blob));
+        String sas = blobClient.generateSas(sasSignatureValues);
 
-            return URI.create(blockBlobReference.getUri() + "?" + sas);
-        } catch (URISyntaxException | InvalidKeyException | StorageException e) {
-            throw new IOException(e);
-        }
+        return URI.create(blobClient.getBlobUrl() + "?" + sas);
     }
 
     @Override
@@ -163,11 +134,7 @@ public class AzureBinaryManager extends AbstractCloudBinaryManager {
     }
 
     protected void removeBinary(String digest) {
-        try {
-            container.getBlockBlobReference(prefix + digest).delete();
-        } catch (StorageException | URISyntaxException e) {
-            log.error("Unable to remove binary: {}", digest, e);
-        }
+        client.getBlobClient(prefix + digest).deleteIfExists();
     }
 
     @Override
@@ -179,25 +146,12 @@ public class AzureBinaryManager extends AbstractCloudBinaryManager {
      * @since 11.5
      * @return the length of the blob with the given {@code digest}, or -1 if missing
      */
-    protected long lengthOfBlob(String digest) throws URISyntaxException, StorageException {
-        try {
-            CloudBlockBlob blob = container.getBlockBlobReference(prefix + digest);
-            blob.downloadAttributes();
-            return blob.getProperties().getLength();
-        } catch (StorageException e) {
-            if (isMissingKey(e)) {
-                return -1;
-            }
-            throw e;
+    protected long lengthOfBlob(String digest) {
+        BlobClient blobClient = client.getBlobClient(prefix + digest);
+        if (blobClient != null) {
+            return blobClient.getProperties().getBlobSize();
         }
-    }
-
-    /**
-     * @since 11.5
-     */
-    protected static boolean isMissingKey(StorageException e) {
-        return (e.getHttpStatusCode() == 404) || "BlobNotFound".equals(e.getErrorCode())
-                || "The specified blob does not exist.".equals(e.getMessage());
+        return -1;
     }
 
 }

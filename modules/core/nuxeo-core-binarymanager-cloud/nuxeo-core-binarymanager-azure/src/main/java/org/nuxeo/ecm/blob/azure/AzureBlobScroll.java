@@ -19,23 +19,18 @@
 package org.nuxeo.ecm.blob.azure;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.blob.scroll.AbstractBlobScroll;
 
-import com.microsoft.azure.storage.ResultContinuation;
-import com.microsoft.azure.storage.ResultSegment;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.BlobListingDetails;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import com.microsoft.azure.storage.blob.ListBlobItem;
+import com.azure.core.http.rest.PagedResponse;
+import com.azure.storage.blob.models.BlobItem;
+import com.azure.storage.blob.models.ListBlobsOptions;
 
 /**
- * Scroll blobs of the Azure blob store of a {@link AzureBlobProvider}, the scroll query is the
- * provider id.
+ * Scroll blobs of the Azure blob store of a {@link AzureBlobProvider}, the scroll query is the provider id.
  *
  * @since 2023.6
  */
@@ -45,39 +40,37 @@ public class AzureBlobScroll extends AbstractBlobScroll<AzureBlobProvider> {
 
     protected int prefixLength;
 
-    protected ResultSegment<ListBlobItem> lbs;
+    protected String prefix;
 
-    protected ResultContinuation continuationToken = null;
+    protected Iterator<PagedResponse<BlobItem>> iterator;
 
     @Override
     protected void init(AzureBlobProvider provider) {
         this.store = (AzureBlobStore) provider.store.unwrap();
-        this.prefixLength = this.store.prefix.length();
+        this.prefix = this.store.prefix;
+        this.prefixLength = this.prefix.length();
+        ListBlobsOptions options = new ListBlobsOptions().setPrefix(prefix).setMaxResultsPerPage(size);
+        this.iterator = this.store.client.listBlobsByHierarchy("/", options, null).iterableByPage().iterator();
     }
 
     @Override
     public boolean hasNext() {
-        return lbs == null || lbs.getHasMoreResults();
+        return this.iterator.hasNext();
     }
 
     @Override
     public List<String> next() {
-        if (lbs != null && !lbs.getHasMoreResults()) {
+        if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        try {
-            lbs = store.container.listBlobsSegmented(store.prefix, false, EnumSet.noneOf(BlobListingDetails.class),
-                    size, continuationToken, null, null);
-        } catch (StorageException e) {
-            throw new NuxeoException(e);
-        }
-        continuationToken = lbs.getContinuationToken();
         List<String> result = new ArrayList<>(size);
-        // ignore subdirectories by considering only instances of CloudBlockBlob
-        lbs.getResults().stream().filter(CloudBlockBlob.class::isInstance).forEach(item -> {
-            CloudBlockBlob blob = (CloudBlockBlob) item;
-            addTo(result, blob.getName().substring(prefixLength), () -> blob.getProperties().getLength());
-        });
+        for (BlobItem blob : iterator.next().getElements()) {
+            if (blob.isPrefix()) {
+                // ignore sub directories
+                continue;
+            }
+            addTo(result, blob.getName().substring(prefixLength), () -> blob.getProperties().getContentLength());
+        }
         return result;
     }
 

@@ -3899,9 +3899,16 @@
         <version>${protobuf.java.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.microsoft.azure</groupId>
-        <artifactId>azure-storage</artifactId>
-        <version>8.6.6</version>
+        <groupId>com.azure</groupId>
+        <artifactId>azure-storage-blob</artifactId>
+        <version>12.25.1</version>
+        <exclusions>
+          <exclusion>
+            <!-- use com.sun.activation:javax.activation-api instead -->
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>

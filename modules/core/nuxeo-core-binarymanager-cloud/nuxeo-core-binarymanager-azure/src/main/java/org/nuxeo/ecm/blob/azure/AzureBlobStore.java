@@ -27,10 +27,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.EnumSet;
 import java.util.HashSet;
 
 import org.apache.commons.lang3.mutable.MutableObject;
@@ -47,16 +45,11 @@ import org.nuxeo.ecm.core.blob.KeyStrategy;
 import org.nuxeo.ecm.core.blob.KeyStrategyDigest;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 
-import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.ResultContinuation;
-import com.microsoft.azure.storage.ResultSegment;
-import com.microsoft.azure.storage.StorageErrorCode;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.BlobListingDetails;
-import com.microsoft.azure.storage.blob.CloudBlobClient;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import com.microsoft.azure.storage.blob.ListBlobItem;
+import com.azure.core.util.Context;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.models.BlobRange;
+import com.azure.storage.blob.models.ListBlobsOptions;
 
 /**
  * @since 2023.6
@@ -69,11 +62,7 @@ public class AzureBlobStore extends AbstractBlobStore {
 
     protected final BinaryGarbageCollector gc;
 
-    protected CloudStorageAccount storageAccount;
-
-    protected CloudBlobClient blobClient;
-
-    protected CloudBlobContainer container;
+    protected BlobContainerClient client;
 
     protected String prefix;
 
@@ -83,9 +72,7 @@ public class AzureBlobStore extends AbstractBlobStore {
             KeyStrategy keyStrategy) {
         super(blobProviderId, name, keyStrategy);
         this.config = config;
-        this.storageAccount = config.storageAccount;
-        this.blobClient = config.blobClient;
-        this.container = config.container;
+        this.client = config.client;
         this.prefix = config.prefix;
         this.allowByteRange = config.getBooleanProperty(ALLOW_BYTE_RANGE);
         this.gc = new AzureBlobGarbageCollector();
@@ -96,39 +83,28 @@ public class AzureBlobStore extends AbstractBlobStore {
         @Override
         public void computeToDelete() {
             toDelete = new HashSet<>();
-            ResultContinuation continuationToken = null;
-            ResultSegment<ListBlobItem> lbs;
-            do {
-                try {
-                    lbs = container.listBlobsSegmented(prefix, false, EnumSet.noneOf(BlobListingDetails.class), null,
-                            continuationToken, null, null);
-                } catch (StorageException e) {
-                    throw new NuxeoException(e);
+            client.listBlobsByHierarchy(prefix).forEach(blob -> {
+                log.warn("Name: {}, Directory? {}", blob::getName, blob::isPrefix);
+                if (blob.isPrefix()) {
+                    // ignore sub directories
+                    return;
                 }
-                // ignore subdirectories by considering only instances of CloudBlockBlob
-                lbs.getResults().stream().filter(CloudBlockBlob.class::isInstance).forEach(item -> {
-                    CloudBlockBlob blob = (CloudBlockBlob) item;
-
-                    String name = blob.getName();
-                    String digest = name.substring(prefix.length());
-
-                    if (!((KeyStrategyDigest) keyStrategy).isValidDigest(digest)) {
-                        // ignore blobs that cannot be digests, for safety
-                        return;
-                    }
-
-                    long length = blob.getProperties().getLength();
-                    status.sizeBinaries += length;
-                    status.numBinaries++;
-                    toDelete.add(digest);
-                });
-                continuationToken = lbs.getContinuationToken();
-            } while (lbs.getHasMoreResults());
+                String name = blob.getName();
+                String digest = name.substring(prefix.length());
+                if (!((KeyStrategyDigest) keyStrategy).isValidDigest(digest)) {
+                    // ignore blobs that cannot be digests, for safety
+                    return;
+                }
+                long length = blob.getProperties().getContentLength();
+                status.sizeBinaries += length;
+                status.numBinaries++;
+                toDelete.add(digest);
+            });
         }
 
         @Override
         public String getId() {
-            return "azure:" + container + "/" + prefix;
+            return "azure:" + config.containerName + "/" + prefix;
         }
 
         @Override
@@ -139,23 +115,18 @@ public class AzureBlobStore extends AbstractBlobStore {
         @Override
         public void removeUnmarkedBlobsAndUpdateStatus(boolean delete) {
             for (String digest : toDelete) {
-                try {
-                    CloudBlockBlob blob = container.getBlockBlobReference(prefix + digest);
-                    if (!blob.exists()) {
-                        // shouldn't happen except if blob concurrently removed
-                        continue;
-                    }
-                    blob.downloadAttributes();
-                    long length = blob.getProperties().getLength();
-                    status.sizeBinariesGC += length;
-                    status.numBinariesGC++;
-                    status.sizeBinaries -= length;
-                    status.numBinaries--;
-                    if (delete) {
-                        deleteBlob(digest);
-                    }
-                } catch (URISyntaxException | StorageException e) {
-                    throw new NuxeoException(e);
+                BlobClient blobClient = client.getBlobClient(prefix + digest);
+                if (!blobClient.exists()) {
+                    // shouldn't happen except if blob concurrently removed
+                    continue;
+                }
+                long length = blobClient.getProperties().getBlobSize();
+                status.sizeBinariesGC += length;
+                status.numBinariesGC++;
+                status.sizeBinaries -= length;
+                status.numBinaries--;
+                if (delete) {
+                    deleteBlob(digest);
                 }
             }
         }
@@ -188,18 +159,13 @@ public class AzureBlobStore extends AbstractBlobStore {
                 }
                 file = tmp;
             }
-            CloudBlockBlob blob;
-            try {
-                blob = container.getBlockBlobReference(prefix + key);
-                // if the digest is not already known then save to Azure
-                if (!blob.exists()) {
-                    File pathFile = file.toFile();
-                    try (InputStream is = new FileInputStream(pathFile)) {
-                        blob.upload(is, pathFile.length());
-                    }
+            BlobClient blobClient = client.getBlobClient(prefix + key);
+            // if the digest is not already known then save to Azure
+            if (!blobClient.exists()) {
+                File pathFile = file.toFile();
+                try (InputStream is = new FileInputStream(pathFile)) {
+                    blobClient.upload(is, pathFile.length());
                 }
-            } catch (StorageException | URISyntaxException e) {
-                throw new IOException(e);
             }
             if (atomicMove) {
                 sourceStore.deleteBlob(sourceKey);
@@ -218,17 +184,8 @@ public class AzureBlobStore extends AbstractBlobStore {
 
     @Override
     public boolean exists(String key) {
-        try {
-            CloudBlockBlob blob = container.getBlockBlobReference(prefix + key);
-            return blob.exists();
-        } catch (StorageException e) {
-            if (!e.getErrorCode().equals(StorageErrorCode.RESOURCE_NOT_FOUND.toString())) {
-                log.error("Error while checking if key: {} exists", key, e);
-            }
-        } catch (URISyntaxException e) {
-            log.error("Error while checking if key: {} exists", key, e);
-        }
-        return false;
+        BlobClient blobClient = client.getBlobClient(prefix + key);
+        return blobClient.exists();
     }
 
     @Override
@@ -244,16 +201,11 @@ public class AzureBlobStore extends AbstractBlobStore {
 
     @Override
     public OptionalOrUnknown<InputStream> getStream(String key) throws IOException {
-        try {
-            CloudBlockBlob blob = container.getBlockBlobReference(prefix + key);
-            if (!blob.exists()) {
-                return OptionalOrUnknown.missing();
-            }
-            return OptionalOrUnknown.of(blob.openInputStream());
-        } catch (StorageException | URISyntaxException e) {
-            log.error("Error while getting stream for key: {}", key, e);
+        BlobClient blobClient = client.getBlobClient(prefix + key);
+        if (!blobClient.exists()) {
             return OptionalOrUnknown.missing();
         }
+        return OptionalOrUnknown.of(blobClient.openInputStream());
     }
 
     @Override
@@ -267,24 +219,19 @@ public class AzureBlobStore extends AbstractBlobStore {
             byteRange = null;
         }
         log.debug("fetching blob: {} from Azure", key);
-        try {
-            CloudBlockBlob blob = container.getBlockBlobReference(prefix + key);
-            if (!blob.exists()) {
-                return false;
-            }
-            try (OutputStream os = new FileOutputStream(dest.toFile())) {
-                if (byteRange != null) {
-                    blob.downloadRange(byteRange.getStart(), byteRange.getLength(), os);
-                } else {
-                    blob.download(os);
-                }
-            }
-            return true;
-        } catch (URISyntaxException e) {
-            throw new IOException(e);
-        } catch (StorageException e) {
+        BlobClient blobClient = client.getBlobClient(prefix + key);
+        if (!blobClient.exists()) {
             return false;
         }
+        try (OutputStream os = new FileOutputStream(dest.toFile())) {
+            if (byteRange != null) {
+                blobClient.downloadStreamWithResponse(os, new BlobRange(byteRange.getStart(), byteRange.getLength()),
+                        null, null, false, null, Context.NONE);
+            } else {
+                blobClient.downloadStream(os);
+            }
+        }
+        return true;
     }
 
     @Override
@@ -320,17 +267,12 @@ public class AzureBlobStore extends AbstractBlobStore {
             }
             // if the digest is not already known then save to Azure
             log.debug("Storing blob with digest: {} to Azure", key);
-            CloudBlockBlob blob;
-            try {
-                blob = container.getBlockBlobReference(prefix + key);
-                if (!blob.exists()) {
-                    File pathFile = file.toFile();
-                    try (InputStream is = new FileInputStream(pathFile)) {
-                        blob.upload(is, pathFile.length());
-                    }
+            BlobClient blobClient = client.getBlobClient(prefix + key);
+            if (!blobClient.exists()) {
+                File pathFile = file.toFile();
+                try (InputStream is = new FileInputStream(pathFile)) {
+                    blobClient.upload(is, pathFile.length());
                 }
-            } catch (StorageException | URISyntaxException e) {
-                throw new IOException(e);
             }
             return key;
         } finally {
@@ -347,14 +289,7 @@ public class AzureBlobStore extends AbstractBlobStore {
 
     @Override
     public void deleteBlob(String key) {
-        try {
-            CloudBlockBlob blob = container.getBlockBlobReference(prefix + key);
-            if (blob.exists()) {
-                blob.delete();
-            }
-        } catch (StorageException | URISyntaxException e) {
-            log.warn("Unable to remove blob: {}", key, e);
-        }
+        client.getBlobClient(prefix + key).deleteIfExists();
     }
 
     @Override
@@ -364,24 +299,10 @@ public class AzureBlobStore extends AbstractBlobStore {
 
     @Override
     public void clear() {
-        ResultContinuation continuationToken = null;
-        ResultSegment<ListBlobItem> lbs;
-        do {
-            try {
-                lbs = container.listBlobsSegmented(prefix, false, EnumSet.noneOf(BlobListingDetails.class), null,
-                        continuationToken, null, null);
-            } catch (StorageException e) {
-                throw new NuxeoException(e);
-            }
-
-            // ignore subdirectories by considering only instances of CloudBlockBlob
-            lbs.getResults()
-               .stream()
-               .filter(CloudBlockBlob.class::isInstance)
-               .map(item -> ((CloudBlockBlob) item).getName().substring(prefix.length()))
-               .forEach((key -> deleteBlob(key)));
-            continuationToken = lbs.getContinuationToken();
-        } while (lbs.getHasMoreResults());
+        ListBlobsOptions options = new ListBlobsOptions().setPrefix(prefix);
+        client.listBlobs(options, null).iterator().forEachRemaining(item -> {
+            client.getBlobClient(item.getName()).delete();
+        });
     }
 
 }

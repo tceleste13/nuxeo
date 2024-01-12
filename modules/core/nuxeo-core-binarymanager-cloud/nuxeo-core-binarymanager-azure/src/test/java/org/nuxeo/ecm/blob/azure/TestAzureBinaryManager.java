@@ -31,16 +31,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -85,15 +79,10 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
-import com.microsoft.azure.storage.Constants;
-import com.microsoft.azure.storage.StorageCredentialsSharedAccessSignature;
-import com.microsoft.azure.storage.StorageException;
-import com.microsoft.azure.storage.blob.CloudBlobContainer;
-import com.microsoft.azure.storage.blob.CloudBlockBlob;
-import com.microsoft.azure.storage.blob.SharedAccessBlobHeaders;
-import com.microsoft.azure.storage.blob.SharedAccessBlobPolicy;
-import com.microsoft.azure.storage.core.StreamMd5AndLength;
-import com.microsoft.azure.storage.core.Utility;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.sas.BlobSasPermission;
+import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 
 /**
  * WARNING: You must pass those variables to your test configuration:
@@ -156,25 +145,9 @@ public class TestAzureBinaryManager extends AbstractTestCloudBinaryManager<Azure
      */
     @Override
     protected void removeObjects() {
-        removeBinaries(listAllObjects());
-    }
-
-    /**
-     * @since 11.5
-     */
-    protected void removeBinaries(Collection<String> digests) {
-        digests.forEach(this::removeBinary);
-    }
-
-    /**
-     * @since 11.5
-     */
-    protected void removeBinary(String digest) {
-        try {
-            binaryManager.container.getBlockBlobReference(digest).delete();
-        } catch (StorageException | URISyntaxException e) {
-            log.error("Unable to remove binary: {}", digest, e);
-        }
+        binaryManager.client.listBlobs().iterator().forEachRemaining(item -> {
+            binaryManager.client.getBlobClient(item.getName()).delete();
+        });
     }
 
     @Override
@@ -187,52 +160,46 @@ public class TestAzureBinaryManager extends AbstractTestCloudBinaryManager<Azure
     @Override
     protected Set<String> listObjects() {
         Set<String> digests = new HashSet<>();
-        binaryManager.container.listBlobs(PREFIX, false).forEach(lb -> {
-            if (lb instanceof CloudBlockBlob) { // ignore subdirectories
-                String name = ((CloudBlockBlob) lb).getName();
-                String digest = name.substring(PREFIX.length());
-                digests.add(digest);
+        binaryManager.client.listBlobsByHierarchy(PREFIX).forEach(blob -> {
+            if (blob.isPrefix()) {
+                // ignore sub directories
+                return;
             }
+            String name = blob.getName();
+            String digest = name.substring(PREFIX.length());
+            digests.add(digest);
         });
         return digests;
     }
 
     protected Set<String> listAllObjects() {
         Set<String> names = new HashSet<>();
-        binaryManager.container.listBlobs("", true).forEach(lb -> {
-            String name = ((CloudBlockBlob) lb).getName();
+        binaryManager.client.listBlobs().forEach(blob -> {
+            String name = blob.getName();
             names.add(name);
         });
         return names;
     }
 
     @Test
-    public void testSigning() throws IOException, URISyntaxException, StorageException, InvalidKeyException {
-        CloudBlobContainer container = binaryManager.container;
+    public void testSigning() throws IOException {
+        BlobContainerClient client = binaryManager.client;
         Binary binary = binaryManager.getBinary(Blobs.createBlob(CONTENT));
         assertNotNull(binary);
 
-        CloudBlockBlob blockBlobReference = container.getBlockBlobReference(CONTENT_MD5);
-        SharedAccessBlobPolicy policy = new SharedAccessBlobPolicy();
-        policy.setPermissionsFromString("r");
+        BlobClient blobClient = client.getBlobClient(CONTENT_MD5);
 
-        // rscd content-dispositoon
-        // rsct content-type
+        // specify token properties
+        BlobSasPermission permissions = BlobSasPermission.parse("r");
 
-        Instant endDateTime = LocalDateTime.now().plusHours(1).atZone(ZoneId.systemDefault()).toInstant();
-        policy.setSharedAccessExpiryTime(Date.from(endDateTime));
+        OffsetDateTime expiryTime = OffsetDateTime.now().plusHours(1);
 
-        SharedAccessBlobHeaders headers = new SharedAccessBlobHeaders();
-        headers.setContentDisposition("attachment; filename=\"blabla.txt\"");
-        headers.setContentType("text/plain");
+        // build the token
+        BlobServiceSasSignatureValues sasSignatureValues = new BlobServiceSasSignatureValues(expiryTime, permissions);
+        sasSignatureValues.setContentDisposition("attachment; filename=\"blabla.txt\"");
+        sasSignatureValues.setContentType("text/plain");
+        String something = blobClient.generateSas(sasSignatureValues);
 
-        String something = blockBlobReference.generateSharedAccessSignature(policy, headers, null);
-        log.debug(something);
-
-        CloudBlockBlob blob = new CloudBlockBlob(blockBlobReference.getUri(),
-                new StorageCredentialsSharedAccessSignature(something));
-
-        log.debug(blob.getSnapshotQualifiedUri());
     }
 
     protected String getContentTypeHeader(Blob blob) {
@@ -256,18 +223,6 @@ public class TestAzureBinaryManager extends AbstractTestCloudBinaryManager<Azure
         }
     }
 
-    @Test
-    public void ensureDigestDecode() throws IOException, StorageException {
-        Blob blob = Blobs.createBlob(CONTENT2);
-        String contentMd5;
-        try (InputStream is = blob.getStream()) {
-            StreamMd5AndLength md5 = Utility.analyzeStream(is, blob.getLength(), 2L * Constants.MB, true, true);
-            contentMd5 = md5.getMd5();
-        }
-
-        assertTrue(AzureFileStorage.isBlobDigestCorrect(CONTENT2_MD5, contentMd5));
-    }
-
     @Override
     @Test
     public void testBinaryManagerGC() throws IOException {
@@ -279,23 +234,18 @@ public class TestAzureBinaryManager extends AbstractTestCloudBinaryManager<Azure
 
         String name1 = "12345678901234567890123456789012";
         String name2 = binaryManager.prefix + "subfolder/12345678901234567890123456789999";
-        try {
-            // create a md5-looking extra file at the root
-            try (InputStream in = new ByteArrayInputStream(new byte[] { '0' })) {
-                CloudBlockBlob blob = binaryManager.container.getBlockBlobReference(name1);
-                blob.upload(in, 1);
-            }
-            // create a md5-looking extra file in a "subdirectory" of the prefix
-            try (InputStream in = new ByteArrayInputStream(new byte[] { '0' })) {
-                CloudBlockBlob blob = binaryManager.container.getBlockBlobReference(name2);
-                blob.upload(in, 1);
-            }
-            // check that the files are here
-            assertEquals(new HashSet<>(Arrays.asList(name1, name2)), listAllObjects());
-        } catch (URISyntaxException | StorageException e) {
-            throw new NuxeoException(e);
+        // create a md5-looking extra file at the root
+        try (InputStream in = new ByteArrayInputStream(new byte[] { '0' })) {
+            BlobClient blobClient = binaryManager.client.getBlobClient(name1);
+            blobClient.upload(in, 1);
         }
-
+        // create a md5-looking extra file in a "subdirectory" of the prefix
+        try (InputStream in = new ByteArrayInputStream(new byte[] { '0' })) {
+            BlobClient blobClient = binaryManager.client.getBlobClient(name2);
+            blobClient.upload(in, 1);
+        }
+        // check that the files are here
+        assertEquals(new HashSet<>(Arrays.asList(name1, name2)), listAllObjects());
         // run base test with the prefix
         super.testBinaryManagerGC();
 
