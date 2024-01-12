@@ -304,9 +304,18 @@ public class BulkServiceImpl implements BulkService, Synchronization {
     @Override
     public BulkStatus abort(String commandId) {
         BulkStatus status = getStatus(commandId);
-        if (COMPLETED.equals(status.getState())) {
-            log.debug("Cannot abort a completed command: {}", commandId);
-            return status;
+        switch (status.getState()) {
+            case COMPLETED:
+                log.debug("Cannot abort a completed command: {}", commandId);
+                return status;
+            case ABORTED:
+                log.debug("Command: {} already aborted", commandId);
+                return status;
+            case UNKNOWN:
+                log.debug("Unknown command: {}", commandId);
+                return status;
+            default:
+                log.warn("Aborting command: {}, status: {}", commandId, status);
         }
         status.setState(ABORTED);
         // set the status in the KV store
