@@ -180,7 +180,7 @@ public class BulkScrollerComputation extends AbstractComputation {
             scrollLoop: try (Scroll scroll = buildScroll(command)) {
                 while (scroll.hasNext()) {
                     if (isAbortedCommand(commandId)) {
-                        log.debug("Skipping aborted command: {}", commandId);
+                        log.warn("Stop scrolling aborted command: {}", command);
                         context.askForCheckpoint();
                         return;
                     }
