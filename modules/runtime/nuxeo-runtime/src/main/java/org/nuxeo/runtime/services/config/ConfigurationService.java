@@ -169,6 +169,14 @@ public interface ConfigurationService {
     Map<String, Serializable> getProperties(String namespace);
 
     /**
+     * Returns all the properties.
+     *
+     * @return a map of properties
+     * @since 2023.6
+     */
+    Map<String, Serializable> getProperties();
+
+    /**
      * Returns true if given property is true when compared to a boolean value.
      *
      * @deprecated since 11.1, use {@link #isBooleanTrue(String)} instead

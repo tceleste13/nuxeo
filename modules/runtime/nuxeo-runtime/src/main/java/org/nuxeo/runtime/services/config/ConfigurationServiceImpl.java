@@ -159,6 +159,16 @@ public class ConfigurationServiceImpl extends DefaultComponent implements Config
     }
 
     @Override
+    public Map<String, Serializable> getProperties() {
+        return getDescriptors().values()
+                               .stream()
+                               .collect(Collectors.toMap(desc -> desc.getId(),
+                                       desc -> desc.getValue() != null && desc.list
+                                               ? desc.getValue().split(LIST_SEPARATOR)
+                                               : desc.getValue()));
+    }
+
+    @Override
     public String getPropertiesAsJson(String namespace) throws IOException {
         // Build properties with indexes for lists
         Properties properties = new Properties();

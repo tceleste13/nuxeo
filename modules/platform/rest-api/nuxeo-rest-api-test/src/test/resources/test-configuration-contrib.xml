@@ -1,0 +1,10 @@
+<component name="org.nuxeo.rest.api.ConfigurationService.test">
+
+  <extension target="org.nuxeo.runtime.ConfigurationService" point="configuration">
+
+    <property name="foo">bar</property>
+    <property name="foobar">false</property>
+
+  </extension>
+
+</component>

@@ -31,6 +31,7 @@ import org.nuxeo.ecm.core.io.marshallers.json.JsonAssert;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.jaxrs.test.CloseableClientResponse;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
@@ -59,6 +60,7 @@ public class TestConfigurationObject extends ManagementBaseTest {
 
     @Test
     @WithFrameworkProperty(name = "superSecret", value = "myBFFname")
+    @Deploy("org.nuxeo.ecm.platform.restapi.test.test:test-configuration-contrib.xml")
     public void testGet() throws IOException {
         try (CloseableClientResponse response = httpClientRule.get("/management/configuration")) {
             assertEquals(SC_OK, response.getStatus());
@@ -73,6 +75,9 @@ public class TestConfigurationObject extends ManagementBaseTest {
                            .isEquals(
                                    "org.apache.kafka.common.security.scram.ScramLoginModule required username\\=\"kafkaclient1\" password\\=***");
             jsonAssert.get("runtimeProperties").has("superSecret").isEquals("***");
+            var configurationServiceProps = jsonAssert.get("configurationServiceProperties");
+            configurationServiceProps.has("foo").isEquals("bar");
+            configurationServiceProps.has("foobar").isEquals("false");
         }
     }
 }

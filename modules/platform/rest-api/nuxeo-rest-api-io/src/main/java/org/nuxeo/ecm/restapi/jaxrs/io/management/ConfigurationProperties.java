@@ -27,9 +27,13 @@ public class ConfigurationProperties {
 
     protected final Properties runtimeProperties;
 
-    public ConfigurationProperties(Properties configuredProperties, Properties runtimeProperties) {
+    protected final Properties configurationServiceProperties;
+
+    public ConfigurationProperties(Properties configuredProperties, Properties runtimeProperties,
+            Properties configurationServiceProperties) {
         this.configuredProperties = configuredProperties;
         this.runtimeProperties = runtimeProperties;
+        this.configurationServiceProperties = configurationServiceProperties;
     }
 
     public Properties getConfiguredProperties() {
@@ -38,5 +42,9 @@ public class ConfigurationProperties {
 
     public Properties getRuntimeProperties() {
         return runtimeProperties;
+    }
+
+    public Properties getConfigurationServiceProperties() {
+        return configurationServiceProperties;
     }
 }
