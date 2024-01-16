@@ -117,7 +117,8 @@ public class TestConfigurationService {
         assertEquals(0, Framework.getRuntime().getMessageHandler().getMessages(Level.WARNING).size());
         hotDeployer.deploy("org.nuxeo.runtime.test.tests:configuration-test-contrib.xml");
 
-        // The deprecation warning messages should not be appended to the runtime, but logged by the DeprecationLogger class
+        // The deprecation warning messages should not be appended to the runtime, but logged by the DeprecationLogger
+        // class
         assertEquals(0, Framework.getRuntime().getMessageHandler().getMessages(Level.WARNING).size());
 
         List<String> caughtEvents = logCaptureResult.getCaughtEventMessages();
