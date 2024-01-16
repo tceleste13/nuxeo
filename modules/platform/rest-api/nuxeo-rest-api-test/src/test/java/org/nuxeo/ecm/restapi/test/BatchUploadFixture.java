@@ -1152,8 +1152,9 @@ public class BatchUploadFixture extends BaseTest {
     /** NXP-31123: Reject multipart uploads */
     @Test
     public void testRejectMultipartFormDataUpload() throws IOException {
-        try (CloseableClientResponse response = getResponse(RequestType.POST, "upload/" + initializeNewBatchWithHandler() + "/0",
-                "dummy", Map.of("Content-Type", MULTIPART_FORM_DATA))) {
+        try (CloseableClientResponse response = getResponse(RequestType.POST,
+                "upload/" + initializeNewBatchWithHandler() + "/0", "dummy",
+                Map.of("Content-Type", MULTIPART_FORM_DATA))) {
             assertEquals(SC_BAD_REQUEST, response.getStatus());
         }
     }
