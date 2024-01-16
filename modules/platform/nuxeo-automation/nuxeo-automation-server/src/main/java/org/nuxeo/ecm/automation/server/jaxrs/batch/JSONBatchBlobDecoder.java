@@ -20,6 +20,8 @@
 
 package org.nuxeo.ecm.automation.server.jaxrs.batch;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.nuxeo.ecm.automation.core.util.JSONBlobDecoder;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.platform.web.common.RequestContext;
@@ -69,7 +71,12 @@ public class JSONBatchBlobDecoder implements JSONBlobDecoder {
                 final boolean drop = !Boolean.parseBoolean(
                         RequestContext.getActiveContext().getRequest().getHeader(BatchManagerConstants.NO_DROP_FLAG));
                 if (drop) {
+                    final HttpServletResponse response = RequestContext.getActiveContext().getResponse();
                     RequestContext.getActiveContext().addRequestCleanupHandler(request -> {
+                        // don't drop batch in case of error, typically a DocumentValidationException (422 status code)
+                        if (response.getStatus() >= 400) {
+                            return;
+                        }
                         BatchManager bm1 = Framework.getService(BatchManager.class);
                         bm1.clean(batchId);
                     });
