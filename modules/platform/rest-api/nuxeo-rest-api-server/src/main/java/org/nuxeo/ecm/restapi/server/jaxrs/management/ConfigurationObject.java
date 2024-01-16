@@ -33,6 +33,7 @@ import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
 import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
 import org.nuxeo.launcher.config.ConfigurationConstants;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.services.config.ConfigurationService;
 
 /**
  * Dumps the configuration properties and runtime properties.
@@ -51,10 +52,13 @@ public class ConfigurationObject extends AbstractResource<ResourceTypeImpl> {
 
     protected Properties configurationProps;
 
+    protected Properties configurationServiceProps;
+
     @GET
     public ConfigurationProperties doGet() throws IOException {
         var runtimeProps = Framework.getProperties();
-        return new ConfigurationProperties(getConfigurationProperties(), runtimeProps);
+        return new ConfigurationProperties(getConfigurationProperties(), runtimeProps,
+                getConfigurationServiceProperties());
     }
 
     protected Properties getConfigurationProperties() throws IOException {
@@ -67,5 +71,13 @@ public class ConfigurationObject extends AbstractResource<ResourceTypeImpl> {
             }
         }
         return configurationProps;
+    }
+
+    protected Properties getConfigurationServiceProperties() {
+        if (configurationServiceProps == null) {
+            configurationServiceProps = new Properties();
+            configurationServiceProps.putAll(Framework.getService(ConfigurationService.class).getProperties());
+        }
+        return configurationServiceProps;
     }
 }

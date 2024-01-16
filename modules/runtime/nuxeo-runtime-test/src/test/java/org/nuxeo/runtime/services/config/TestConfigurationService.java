@@ -179,6 +179,15 @@ public class TestConfigurationService {
     }
 
     /**
+     * @since 2023.6
+     */
+    @Test
+    @Deploy("org.nuxeo.runtime.test.tests:configuration-namespace-contrib.xml")
+    public void testAllProperties() {
+        assertEquals(7, cs.getProperties().size());
+    }
+
+    /**
      * @since 10.3
      */
     @Test
