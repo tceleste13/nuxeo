@@ -1378,6 +1378,7 @@ public class BatchUploadFixture extends BaseTest {
                 headers)) {
             assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
         }
+        txFeature.nextTransaction();
 
         // Create a document with the uploaded file as main content
         String json = getCreateDocumentJSON("File", batchId);
