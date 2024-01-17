@@ -26,6 +26,7 @@ import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
 import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
+import static org.apache.http.HttpStatus.SC_UNPROCESSABLE_ENTITY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -79,6 +80,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
 @Deploy("org.nuxeo.ecm.platform.restapi.test:multiblob-doctype.xml")
 @Deploy("org.nuxeo.ecm.platform.restapi.test:test-conflict-batch-handler.xml")
+@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-validation-activation-contrib.xml")
 public class BatchUploadFixture extends BaseTest {
 
     @Inject
@@ -1044,6 +1046,12 @@ public class BatchUploadFixture extends BaseTest {
         }
     }
 
+    protected void assertBatchNotExists(String batchId) {
+        try (CloseableClientResponse response = getResponse(RequestType.GET, "upload/" + batchId)) {
+            assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
+        }
+    }
+
     /** @since 9.3 */
     @Test
     public void testEmptyFileUpload() throws IOException {
@@ -1348,6 +1356,86 @@ public class BatchUploadFixture extends BaseTest {
         assertFalse(txtFile.exists());
     }
 
+    // NXP-32107: OK case
+    @Test
+    public void testBatchDroppedAtDocumentCreationSuccess() throws IOException {
+        // Get batch id, used as a session id
+        String batchId = initializeNewBatch();
+
+        // Upload a file in this batch
+        String fileName = "Some file.txt";
+        String mimeType = "text/plain";
+        String content = "Some content";
+        Map<String, String> headers = new HashMap<>();
+        headers.put("X-Upload-Type", "normal");
+        headers.put("X-File-Name", fileName);
+        headers.put("Content-Type", mimeType);
+        headers.put("X-File-Type", mimeType);
+        try (CloseableClientResponse response = getResponse(RequestType.POST, "upload/" + batchId + "/0", content,
+                headers)) {
+            assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        }
+        txFeature.nextTransaction();
+
+        // Create a document with the uploaded file as main content
+        String json = getCreateDocumentJSON("File", batchId);
+        try (CloseableClientResponse response = getResponse(RequestType.POST, "path/", json)) {
+            assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        }
+
+        // Document creation succeeded, the batch should be dropped
+        assertBatchNotExists(batchId);
+
+        // and the file correctly attached to the document
+        DocumentModel doc = session.getDocument(new PathRef("/testBatchUploadDoc"));
+        Blob blob = (Blob) doc.getPropertyValue("file:content");
+        assertNotNull(blob);
+        assertEquals(fileName, blob.getFilename());
+        assertEquals(mimeType, blob.getMimeType());
+        assertEquals(content, new String(blob.getByteArray(), UTF_8));
+    }
+
+    // NXP-32107: KO case (DocumentValidationException)
+    @Test
+    public void testBatchDroppedAtDocumentCreationFailure() throws IOException {
+        // Get batch id, used as a session id
+        String batchId = initializeNewBatch();
+
+        // Upload a file in this batch
+        String fileName = "Some file.txt";
+        String mimeType = "text/plain";
+        String content = "Some content";
+        Map<String, String> headers = new HashMap<>();
+        headers.put("X-Upload-Type", "normal");
+        headers.put("X-File-Name", fileName);
+        headers.put("Content-Type", mimeType);
+        headers.put("X-File-Type", mimeType);
+        try (CloseableClientResponse response = getResponse(RequestType.POST, "upload/" + batchId + "/0", content,
+                headers)) {
+            assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+        }
+
+        // Try to create a document with the uploaded file as main content, with an expected DocumentValidationException
+        String json = getCreateDocumentJSON("ValidatedUserGroup", batchId);
+        try (CloseableClientResponse response = getResponse(RequestType.POST, "path/", json)) {
+            // Expect a 422 error
+            assertEquals(SC_UNPROCESSABLE_ENTITY, response.getStatus());
+        }
+
+        // Document creation failed, the batch should NOT be dropped
+        assertBatchExists(batchId);
+
+        // and the file should be available in the batch
+        try (CloseableClientResponse response = getResponse(RequestType.GET, "upload/" + batchId + "/0")) {
+            assertEquals(Status.OK.getStatusCode(), response.getStatus());
+            JsonNode node = mapper.readTree(response.getEntityInputStream());
+            assertEquals(fileName, node.get("name").asText());
+        }
+
+        // and the document should not be created
+        assertFalse(session.exists(new PathRef("/testBatchUploadDoc")));
+    }
+
     /**
      * Deprecated since 7.10, but it seems we leverage it at several places.
      */
@@ -1369,6 +1457,20 @@ public class BatchUploadFixture extends BaseTest {
             assertNotNull(batchId);
             return batchId;
         }
+    }
+
+    protected String getCreateDocumentJSON(String type, String batchId) {
+        return "{" + //
+                "  \"entity-type\":\"document\"," + //
+                "  \"name\":\"testBatchUploadDoc\"," + //
+                "  \"type\":\"" + type + "\"," + //
+                "  \"properties\" : {" + //
+                "    \"file:content\" : {" + //
+                "      \"upload-batch\": \"" + batchId + "\"," + //
+                "      \"upload-fileId\": \"0\"" + //
+                "    }" + //
+                "  }" + //
+                "}";
     }
 
 }
