@@ -25,9 +25,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -213,25 +212,13 @@ public class MimetypeRegistryService extends DefaultComponent implements Mimetyp
         }
         try {
             MagicMatch match = Magic.getMagicMatch(file, true, false);
-            String mimeType;
 
-            if (match.getSubMatches().isEmpty()) {
-                mimeType = match.getMimeType();
-            } else {
-                // Submatches found
-                // TODO: we only take the first here
-                // what to do with other possible responses ?
-                // b.t.w., multiple responses denotes a non-accuracy problem in
-                // magic.xml but be careful to nested possible
-                // sub-sub-...-submatches make this as recursive ?
-                Collection<MagicMatch> possibilities = match.getSubMatches();
-                Iterator<MagicMatch> iter = possibilities.iterator();
-                MagicMatch m = requireNonNullElse(iter.next(), match);
-                mimeType = m.getMimeType();
-                // need to clean for subsequent calls
-                possibilities.clear();
-                match.setSubMatches(possibilities);
-            }
+            // Only take into account the first possibility.
+            var possibilities = new ArrayList<MagicMatch>(match.getSubMatches());
+            var possibility = possibilities.isEmpty() ? null : possibilities.get(0);
+            MagicMatch m = requireNonNullElse(possibility, match);
+            String mimeType = m.getMimeType();
+
             if ("text/plain".equals(mimeType)) {
                 // check we didn't mis-detect files with zeroes
                 // check first 16 bytes
