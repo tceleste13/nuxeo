@@ -55,6 +55,8 @@ public class ConfigurationPropertiesJsonWriter extends ExtensibleEntityJsonWrite
         writeProperties("configuredProperties", entity.getConfiguredProperties(), jg);
         writeProperties("runtimeProperties", entity.getRuntimeProperties(), jg);
         writeProperties("configurationServiceProperties", entity.getConfigurationServiceProperties(), jg);
+        writeProperties("jvmProperties", entity.getJvmProperties(), jg);
+        writeProperties("miscProperties", entity.getMiscProperties(), jg);
     }
 
     protected void writeProperties(String name, Properties properties, JsonGenerator jg) throws IOException {

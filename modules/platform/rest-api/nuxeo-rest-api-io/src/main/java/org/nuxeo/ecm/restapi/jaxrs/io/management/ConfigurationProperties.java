@@ -29,11 +29,17 @@ public class ConfigurationProperties {
 
     protected final Properties configurationServiceProperties;
 
+    protected final Properties jvmProperties;
+
+    protected final Properties miscProperties;
+
     public ConfigurationProperties(Properties configuredProperties, Properties runtimeProperties,
-            Properties configurationServiceProperties) {
+            Properties configurationServiceProperties, Properties jvmProperties, Properties miscProperties) {
         this.configuredProperties = configuredProperties;
         this.runtimeProperties = runtimeProperties;
         this.configurationServiceProperties = configurationServiceProperties;
+        this.jvmProperties = jvmProperties;
+        this.miscProperties = miscProperties;
     }
 
     public Properties getConfiguredProperties() {
@@ -47,4 +53,13 @@ public class ConfigurationProperties {
     public Properties getConfigurationServiceProperties() {
         return configurationServiceProperties;
     }
+
+    public Properties getJvmProperties() {
+        return jvmProperties;
+    }
+
+    public Properties getMiscProperties() {
+        return miscProperties;
+    }
+
 }

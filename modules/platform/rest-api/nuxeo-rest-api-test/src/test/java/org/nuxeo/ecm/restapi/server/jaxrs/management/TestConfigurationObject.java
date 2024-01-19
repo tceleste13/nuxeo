@@ -18,6 +18,8 @@ package org.nuxeo.ecm.restapi.server.jaxrs.management;
 
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.assertEquals;
+import static org.nuxeo.ecm.restapi.server.jaxrs.management.ConfigurationObject.OS_TIMEZONE_ID_KEY;
+import static org.nuxeo.ecm.restapi.server.jaxrs.management.ConfigurationObject.OS_TIMEZONE_OFFSET_KEY;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -78,9 +80,18 @@ public class TestConfigurationObject extends ManagementBaseTest {
             var configurationServiceProps = jsonAssert.get("configurationServiceProperties");
             configurationServiceProps.has("foo").isEquals("bar");
             configurationServiceProps.has("foobar").isEquals("false");
-            jsonAssert = configurationServiceProps.has("foolist").isArray().length(2);
-            jsonAssert.get(0).isEquals("dummyValue");
-            jsonAssert.get(1).isEquals("anotherDummyValue");
+            var listProperty = configurationServiceProps.has("foolist").isArray().length(2);
+            listProperty.get(0).isEquals("dummyValue");
+            listProperty.get(1).isEquals("anotherDummyValue");
+            // get the Node to avoid json path confusion because of dots
+            var jvmProps = jsonAssert.get("jvmProperties").getNode();
+            // value depends on reference branch. Not checking for back/forward porting
+            jvmProps.has("java.specification.version");
+            assertEquals("UTF-8", jvmProps.get("sun.jnu.encoding").asText());
+            var miscProps = jsonAssert.get("miscProperties").getNode();
+            // those value will differ between dev workstations and ci/cd containers
+            miscProps.has(OS_TIMEZONE_ID_KEY);
+            miscProps.has(OS_TIMEZONE_OFFSET_KEY);
         }
     }
 }
