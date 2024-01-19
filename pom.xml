@@ -3974,6 +3974,12 @@
       </dependency>
       <dependency>
         <groupId>org.apache.tomcat</groupId>
+        <artifactId>tomcat-util-scan</artifactId>
+        <version>${tomcat.version}</version>
+        <!-- provided by Tomcat, excluded in final assembly -->
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat</groupId>
         <artifactId>tomcat-dbcp</artifactId>
         <version>${tomcat.version}</version>
         <!-- provided by Tomcat, excluded in final assembly -->

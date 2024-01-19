@@ -65,6 +65,10 @@
     </dependency>
     <dependency>
       <groupId>org.apache.tomcat</groupId>
+      <artifactId>tomcat-util-scan</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-jasper</artifactId>
     </dependency>
 
