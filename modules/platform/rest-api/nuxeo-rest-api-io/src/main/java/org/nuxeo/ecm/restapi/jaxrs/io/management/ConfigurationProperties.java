@@ -22,5 +22,5 @@ import java.util.Properties;
  * @since 2023
  */
 public record ConfigurationProperties(Properties configuredProperties, Properties runtimeProperties,
-        Properties configurationServiceProperties) {
+        Properties configurationServiceProperties, Properties jvmProperties, Properties miscProperties) {
 }
