@@ -59,12 +59,37 @@ public class ConfigurationPropertiesJsonWriter extends ExtensibleEntityJsonWrite
 
     protected void writeProperties(String name, Properties properties, JsonGenerator jg) throws IOException {
         jg.writeObjectFieldStart(name);
-        properties.forEach(
-                asBiConsumer((k, v) -> jg.writeStringField(k.toString(), maskSensitive(k.toString(), v.toString()))));
+        properties.forEach(asBiConsumer((k, v) -> writeProperty(k, v, jg)));
         jg.writeEndObject();
     }
 
-    protected String maskSensitive(String key, String value) {
+    protected void writeProperty(Object k, Object v, JsonGenerator jg) throws IOException {
+        String key = k.toString();
+        if (v instanceof String stringValue) {
+            writeStringProperty(key, stringValue, jg);
+        } else if (v instanceof String[] arrayValue) {
+            writeArrayProperty(key, arrayValue, jg);
+        } else {
+            throw new IllegalArgumentException(String.format(
+                    "Cannot write ConfigurationService property: \"%s\" that is not a string nor a string array: \"%s\"",
+                    key, v));
+        }
+
+    }
+
+    protected void writeStringProperty(String key, String value, JsonGenerator jg) throws IOException {
+        jg.writeStringField(key, getMaskedSensitiveValue(key, value));
+    }
+
+    protected void writeArrayProperty(String key, String[] value, JsonGenerator jg) throws IOException {
+        jg.writeArrayFieldStart(key);
+        for (String s : value) {
+            jg.writeString(getMaskedSensitiveValue(key, s));
+        }
+        jg.writeEndArray();
+    }
+
+    protected String getMaskedSensitiveValue(String key, String value) {
         if (SECRET_KEYS.stream().map(String::toLowerCase).anyMatch(key.toLowerCase()::contains)
                 || Crypto.isEncrypted(value)) {
             value = REDACTED_PLACE_HOLDER;
