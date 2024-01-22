@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.elasticsearch.pageproviders">
+
+  <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService" point="providers">
+    <!-- technical page providers for testing repo vs elastic -->
+    <coreQueryPageProvider name="nxql_repo_search">
+      <trackUsage>true</trackUsage>
+      <searchDocumentType>DefaultSearch</searchDocumentType>
+      <pattern quoteParameters="false" escapeParameters="false">?</pattern>
+      <pageSize>10</pageSize>
+      <sort column="dc:modified" ascending="false" />
+    </coreQueryPageProvider>
+
+    <genericPageProvider name="nxql_elastic_search"
+      class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider">
+      <trackUsage>true</trackUsage>
+      <searchDocumentType>DefaultSearch</searchDocumentType>
+      <pattern quoteParameters="false" escapeParameters="false">?</pattern>
+      <pageSize>10</pageSize>
+      <sort column="dc:modified" ascending="false" />
+    </genericPageProvider>
+
+  </extension>
+</component>

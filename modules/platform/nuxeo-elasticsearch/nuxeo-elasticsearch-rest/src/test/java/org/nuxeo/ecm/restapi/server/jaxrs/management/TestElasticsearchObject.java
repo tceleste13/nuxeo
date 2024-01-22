@@ -25,6 +25,7 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.restapi.server.jaxrs.management.ElasticsearchObject.GET_ALL_DOCUMENTS_QUERY;
 
@@ -171,6 +172,18 @@ public class TestElasticsearchObject extends ManagementBaseTest {
     public void shouldRunOptimizeOnRepository() {
         try (CloseableClientResponse response = httpClientRule.post("/management/elasticsearch/optimize", null)) {
             assertEquals(SC_NO_CONTENT, response.getStatus());
+        }
+    }
+
+    @Test
+    public void testCheckSearch() throws IOException {
+        try (CloseableClientResponse response = httpClientRule.get("/management/elasticsearch/checkSearch")) {
+            assertEquals(SC_OK, response.getStatus());
+            JsonNode jsonNode = mapper.readTree(response.getEntityInputStream());
+            assertTrue(jsonNode.isObject());
+            assertEquals(jsonNode.get("repo").get("resultsCount"), jsonNode.get("elastic").get("resultsCount"));
+            assertNotNull(jsonNode.get("repo").get("results"));
+            assertEquals(jsonNode.get("repo").get("results"), jsonNode.get("elastic").get("results"));
         }
     }
 
