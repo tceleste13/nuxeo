@@ -78,6 +78,9 @@ public class TestConfigurationObject extends ManagementBaseTest {
             var configurationServiceProps = jsonAssert.get("configurationServiceProperties");
             configurationServiceProps.has("foo").isEquals("bar");
             configurationServiceProps.has("foobar").isEquals("false");
+            jsonAssert = configurationServiceProps.has("foolist").isArray().length(2);
+            jsonAssert.get(0).isEquals("dummyValue");
+            jsonAssert.get(1).isEquals("anotherDummyValue");
         }
     }
 }

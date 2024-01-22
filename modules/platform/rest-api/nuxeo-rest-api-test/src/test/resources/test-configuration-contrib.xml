@@ -4,6 +4,8 @@
 
     <property name="foo">bar</property>
     <property name="foobar">false</property>
+    <property name="foolist" list="true">dummyValue</property>
+    <property name="foolist">anotherDummyValue</property>
 
   </extension>
 

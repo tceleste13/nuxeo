@@ -184,7 +184,15 @@ public class TestConfigurationService {
     @Test
     @Deploy("org.nuxeo.runtime.test.tests:configuration-namespace-contrib.xml")
     public void testAllProperties() {
-        assertEquals(7, cs.getProperties().size());
+        var properties = cs.getProperties();
+        assertEquals(7, properties.size());
+        assertEquals("true", properties.get("nuxeo.namespace.test.dummyBooleanProperty"));
+        var listProperty = properties.get("nuxeo.namespace.test.dummyStringProperty");
+        assertTrue(listProperty instanceof String[]);
+        String[] stringArrayProperty = (String[]) listProperty;
+        assertEquals(2, stringArrayProperty.length);
+        assertEquals("dummyValue", stringArrayProperty[0]);
+        assertEquals("anotherDummyValue", stringArrayProperty[1]);
     }
 
     /**
