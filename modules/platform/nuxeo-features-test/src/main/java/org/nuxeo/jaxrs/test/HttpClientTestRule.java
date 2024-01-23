@@ -48,6 +48,8 @@ public class HttpClientTestRule implements TestRule {
 
     private final String accept;
 
+    private final int timeout;
+
     private final Map<String, String> headers;
 
     protected Client client;
@@ -59,6 +61,7 @@ public class HttpClientTestRule implements TestRule {
         this.username = builder.username;
         this.password = builder.password;
         this.accept = builder.accept;
+        this.timeout = builder.timeout;
         this.headers = builder.headers;
     }
 
@@ -79,7 +82,13 @@ public class HttpClientTestRule implements TestRule {
     }
 
     public void starting() {
-        client = JerseyClientHelper.clientBuilder().setCredentials(username, password).build();
+        client = JerseyClientHelper.clientBuilder()
+                                   .setCredentials(username, password)
+                                   // override all 3 as they are usually set with the same default value
+                                   .setConnectTimeout(timeout)
+                                   .setSocketTimeout(timeout)
+                                   .setConnectionRequestTimeout(timeout)
+                                   .build();
         service = client.resource(url);
     }
 
@@ -133,6 +142,8 @@ public class HttpClientTestRule implements TestRule {
 
         private String accept;
 
+        private int timeout;
+
         private Map<String, String> headers;
 
         public Builder() {
@@ -140,6 +151,7 @@ public class HttpClientTestRule implements TestRule {
             this.username = null;
             this.password = null;
             this.accept = null;
+            this.timeout = JerseyClientHelper.DEFAULT_CONNECTION_TIMEOUT;
             this.headers = new HashMap<>();
         }
 
@@ -160,6 +172,11 @@ public class HttpClientTestRule implements TestRule {
 
         public Builder accept(String accept) {
             this.accept = accept;
+            return this;
+        }
+
+        public Builder timeout(int timeout) {
+            this.timeout = timeout;
             return this;
         }
 

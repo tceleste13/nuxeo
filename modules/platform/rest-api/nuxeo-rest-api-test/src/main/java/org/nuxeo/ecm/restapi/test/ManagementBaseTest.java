@@ -66,17 +66,14 @@ public abstract class ManagementBaseTest {
 
     protected HttpClientTestRule httpClientRule;
 
-    protected HttpClientTestRule getRule() {
+    protected HttpClientTestRule.Builder getRuleBuilder() {
         String url = String.format("http://localhost:%d/api/v1", servletContainerFeature.getPort());
-        return new HttpClientTestRule.Builder().url(url)
-                                               .accept(WILDCARD)
-                                               .credentials("Administrator", "Administrator")
-                                               .build();
+        return new HttpClientTestRule.Builder().url(url).accept(WILDCARD).credentials("Administrator", "Administrator");
     }
 
     @Before
     public void before() {
-        httpClientRule = getRule();
+        httpClientRule = getRuleBuilder().build();
         httpClientRule.starting();
     }
 
