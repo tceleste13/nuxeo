@@ -84,7 +84,6 @@ public class AzureBlobStore extends AbstractBlobStore {
         public void computeToDelete() {
             toDelete = new HashSet<>();
             client.listBlobsByHierarchy(prefix).forEach(blob -> {
-                log.warn("Name: {}, Directory? {}", blob::getName, blob::isPrefix);
                 if (blob.isPrefix()) {
                     // ignore sub directories
                     return;
@@ -134,11 +133,29 @@ public class AzureBlobStore extends AbstractBlobStore {
 
     @Override
     public boolean copyBlobIsOptimized(BlobStore sourceStore) {
-        return false;
+        return sourceStore.unwrap() instanceof AzureBlobStore;
     }
 
     @Override
     public String copyOrMoveBlob(String key, BlobStore sourceStore, String sourceKey, boolean move) throws IOException {
+        BlobStore unwrappedSourceStore = sourceStore.unwrap();
+        if (unwrappedSourceStore instanceof AzureBlobStore sourceAzureBlobStore) {
+            BlobClient sourceBlobClient = sourceAzureBlobStore.client.getBlobClient(sourceAzureBlobStore.prefix + key);
+            if (!sourceBlobClient.exists()) {
+                return null;
+            }
+            String sourceBlobSasURL = AzureBlobProvider.generateSASUrl(sourceBlobClient, null, null,
+                    60L * 60L /* 1 hour */);
+            BlobClient destBlobClient = client.getBlobClient(prefix + key);
+            // if the digest is not already known then save to Azure
+            if (!destBlobClient.exists()) {
+                destBlobClient.copyFromUrl(sourceBlobSasURL);
+            }
+            if (move) {
+                sourceStore.deleteBlob(sourceKey);
+            }
+            return key;
+        }
         return copyOrMoveBlobGeneric(key, sourceStore, sourceKey, move);
     }
 

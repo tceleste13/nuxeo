@@ -122,19 +122,25 @@ public class AzureBlobProvider extends BlobStoreBlobProvider {
      */
     protected URI getURIAzure(String key, ManagedBlob blob, long downloadExpireSeconds) throws IOException {
         BlobClient blobClient = config.client.getBlobClient(key);
+        String sasUrl = generateSASUrl(blobClient, encodeContentDisposition(blob.getFilename(), false, null),
+                getContentTypeHeader(blob), downloadExpireSeconds);
+        return URI.create(sasUrl);
+    }
 
-        // specify token properties
-        BlobSasPermission permissions = BlobSasPermission.parse("r");
-
-        OffsetDateTime expiryTime = OffsetDateTime.now().plusSeconds(downloadExpireSeconds);
-
-        // build the token
-        BlobServiceSasSignatureValues sasSignatureValues = new BlobServiceSasSignatureValues(expiryTime, permissions);
-        sasSignatureValues.setContentDisposition(encodeContentDisposition(blob.getFilename(), false, null));
-        sasSignatureValues.setContentType(getContentTypeHeader(blob));
-        String sas = blobClient.generateSas(sasSignatureValues);
-
-        return URI.create(blobClient.getBlobUrl() + "?" + sas);
+    protected static String generateSASUrl(BlobClient sourceBlob, String contentDisposition, String contentType,
+            long expirationSeconds) {
+        OffsetDateTime expiryTime = OffsetDateTime.now().plusSeconds(expirationSeconds);
+        BlobSasPermission permission = new BlobSasPermission().setReadPermission(true);
+        BlobServiceSasSignatureValues sasValues = new BlobServiceSasSignatureValues(expiryTime,
+                permission).setStartTime(OffsetDateTime.now());
+        if (contentDisposition != null) {
+            sasValues.setContentDisposition(contentDisposition);
+        }
+        if (contentType != null) {
+            sasValues.setContentType(contentType);
+        }
+        String sasToken = sourceBlob.generateSas(sasValues);
+        return sourceBlob.getBlobUrl() + "?" + sasToken;
     }
 
 }
