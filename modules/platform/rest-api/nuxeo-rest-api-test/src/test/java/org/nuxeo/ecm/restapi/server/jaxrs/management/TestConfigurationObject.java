@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.nuxeo.ecm.core.io.marshallers.json.JsonAssert;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.jaxrs.test.CloseableClientResponse;
+import org.nuxeo.jaxrs.test.HttpClientTestRule;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
@@ -40,6 +41,12 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
  * @since 2021.40
  */
 public class TestConfigurationObject extends ManagementBaseTest {
+
+    @Override
+    protected HttpClientTestRule.Builder getRuleBuilder() {
+        //TODO NXP-32296 Until fixed, this test class makes extensive regex matching work to mask sensitive data
+        return super.getRuleBuilder().timeout(300 * 1000);
+    }
 
     @Before
     public void init() throws IOException {
