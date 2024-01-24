@@ -302,7 +302,7 @@ public class TestTypes {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.schema:OSGI-INF/test-advanced-schema.xml")
-    public void testFieldFromXpath() throws Exception {
+    public void testFieldFromXpath() {
 
         SchemaManager sm = Framework.getService(SchemaManager.class);
         assertNotNull(sm);
@@ -366,7 +366,7 @@ public class TestTypes {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.schema:OSGI-INF/test-advanced-schema.xml")
-    public void testSchemaFromType() throws Exception {
+    public void testSchemaFromType() {
 
         Schema schema = getSchema("foo");
         assertNull(schema);
