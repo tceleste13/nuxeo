@@ -110,6 +110,9 @@ public class TestMaskSensitiveDataRewritePolicy {
 
         testStr = "Should replace this superPassword=secret";
         assertEquals("Should replace this superPassword=***", policy.maskSensitive(testStr));
+
+        testStr = "Should replace this superPasswordSafeRedaction=noleak=secret";
+        assertEquals("Should replace this superPasswordSafeRedaction=***", policy.maskSensitive(testStr));
     }
 
     @Test

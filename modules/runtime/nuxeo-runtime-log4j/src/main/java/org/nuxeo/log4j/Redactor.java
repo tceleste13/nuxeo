@@ -37,9 +37,9 @@ public class Redactor {
     protected static final Pattern GCP_KEY_PATTERN = Pattern.compile(
             "(AIza[0-9A-Za-z-_]{3})[0-9A-Za-z-_]{28}([0-9A-Za-z-_]{4})");
 
-    protected static final Pattern PASSWORD_PATTERN = Pattern.compile("(?i)(\\S*password\\S*)=([^\\s,]+)");
+    protected static final Pattern PASSWORD_PATTERN = Pattern.compile("(?<=(?i)password)([^\\s=]*=)[^\\s,]+");
 
-    protected static final Pattern AUTH_PATTERN = Pattern.compile("(.+://)([^:]+:[^@]+)(@.+)");
+    protected static final Pattern AUTH_PATTERN = Pattern.compile("(?<=.://)[^:]+:[^@]+(?=@.+)");
 
     public String maskSensitive(String msg) {
         var awsMatcher = AWS_KEY_PATTERN.matcher(msg);
@@ -59,11 +59,11 @@ public class Redactor {
         }
         var passwordMatcher = PASSWORD_PATTERN.matcher(msg);
         if (passwordMatcher.find()) {
-            msg = passwordMatcher.replaceAll("$1=" + REDACTED_PLACE_HOLDER);
+            msg = passwordMatcher.replaceAll("$1" + REDACTED_PLACE_HOLDER);
         }
         var authMatcher = AUTH_PATTERN.matcher(msg);
         if (authMatcher.find()) {
-            msg = authMatcher.replaceAll("$1" + REDACTED_PLACE_HOLDER + ":" + REDACTED_PLACE_HOLDER + "$3");
+            msg = authMatcher.replaceAll(REDACTED_PLACE_HOLDER + ":" + REDACTED_PLACE_HOLDER);
         }
         return msg;
     }
