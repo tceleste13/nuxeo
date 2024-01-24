@@ -254,7 +254,7 @@ public class BaseTest {
         assertEquals(note.getTitle(), node.get("title").asText());
     }
 
-    protected List<JsonNode> getLogEntries(JsonNode node) {
+    protected List<JsonNode> getEntries(JsonNode node) {
         assertEquals("documents", node.get("entity-type").asText());
         assertTrue(node.get("entries").isArray());
         List<JsonNode> result = new ArrayList<>();

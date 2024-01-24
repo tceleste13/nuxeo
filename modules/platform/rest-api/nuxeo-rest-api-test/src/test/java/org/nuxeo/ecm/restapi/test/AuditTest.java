@@ -517,7 +517,6 @@ public class AuditTest extends BaseTest {
         }
     }
 
-    @Override
     protected List<JsonNode> getLogEntries(JsonNode node) {
         assertEquals("logEntries", node.get("entity-type").asText());
         assertTrue(node.get("entries").isArray());
