@@ -75,7 +75,7 @@ public class DocumentSecuredPropertyTest extends BaseTest {
 
     @Before
     @Override
-    public void doBefore() throws Exception {
+    public void doBefore() {
         super.doBefore();
         ACE ace = ACE.builder(USER_1, READ_WRITE).creator(session.getPrincipal().getName()).isGranted(true).build();
         ACP acp = new ACPImpl();

@@ -73,13 +73,13 @@ public class BaseTest {
     protected WebResource service;
 
     @Before
-    public void doBefore() throws Exception {
+    public void doBefore() {
         service = getServiceFor("Administrator", "Administrator");
         mapper = new ObjectMapper();
     }
 
     @After
-    public void doAfter() throws Exception {
+    public void doAfter() {
         client.destroy();
     }
 
@@ -174,35 +174,35 @@ public class BaseTest {
         }
         ClientResponse response;
         switch (requestType) {
-        case GET:
-            response = builder.get(ClientResponse.class);
-            break;
-        case POST:
-        case POSTREQUEST:
-            if (mp != null) {
-                response = builder.type(MultiPartMediaTypes.createFormData()).post(ClientResponse.class, mp);
-            } else if (data != null) {
-                setJSONContentTypeIfAbsent(builder, headers);
-                response = builder.post(ClientResponse.class, data);
-            } else {
-                response = builder.post(ClientResponse.class);
-            }
-            break;
-        case PUT:
-            if (mp != null) {
-                response = builder.type(MultiPartMediaTypes.createFormData()).put(ClientResponse.class, mp);
-            } else if (data != null) {
-                setJSONContentTypeIfAbsent(builder, headers);
-                response = builder.put(ClientResponse.class, data);
-            } else {
-                response = builder.put(ClientResponse.class);
-            }
-            break;
-        case DELETE:
-            response = builder.delete(ClientResponse.class, data);
-            break;
-        default:
-            throw new UnsupportedOperationException("Type: " + requestType + " is not handled");
+            case GET:
+                response = builder.get(ClientResponse.class);
+                break;
+            case POST:
+            case POSTREQUEST:
+                if (mp != null) {
+                    response = builder.type(MultiPartMediaTypes.createFormData()).post(ClientResponse.class, mp);
+                } else if (data != null) {
+                    setJSONContentTypeIfAbsent(builder, headers);
+                    response = builder.post(ClientResponse.class, data);
+                } else {
+                    response = builder.post(ClientResponse.class);
+                }
+                break;
+            case PUT:
+                if (mp != null) {
+                    response = builder.type(MultiPartMediaTypes.createFormData()).put(ClientResponse.class, mp);
+                } else if (data != null) {
+                    setJSONContentTypeIfAbsent(builder, headers);
+                    response = builder.put(ClientResponse.class, data);
+                } else {
+                    response = builder.put(ClientResponse.class);
+                }
+                break;
+            case DELETE:
+                response = builder.delete(ClientResponse.class, data);
+                break;
+            default:
+                throw new UnsupportedOperationException("Type: " + requestType + " is not handled");
         }
 
         // Make the ClientResponse AutoCloseable by wrapping it in a CloseableClientResponse.
@@ -247,7 +247,7 @@ public class BaseTest {
         }
     }
 
-    protected void assertNodeEqualsDoc(JsonNode node, DocumentModel note) throws Exception {
+    protected void assertNodeEqualsDoc(JsonNode node, DocumentModel note) {
         assertEquals("document", node.get("entity-type").asText());
         assertEquals(note.getPathAsString(), node.get("path").asText());
         assertEquals(note.getId(), node.get("uid").asText());
@@ -275,7 +275,7 @@ public class BaseTest {
         return node.get("message").asText();
     }
 
-    protected void assertEntityEqualsDoc(InputStream in, DocumentModel doc) throws Exception {
+    protected void assertEntityEqualsDoc(InputStream in, DocumentModel doc) throws IOException {
 
         JsonNode node = mapper.readTree(in);
         assertNodeEqualsDoc(node, doc);

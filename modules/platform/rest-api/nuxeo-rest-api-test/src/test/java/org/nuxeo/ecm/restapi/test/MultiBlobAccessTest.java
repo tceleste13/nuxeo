@@ -69,7 +69,7 @@ public class MultiBlobAccessTest extends BaseTest {
 
     @Override
     @Before
-    public void doBefore() throws Exception {
+    public void doBefore() {
         super.doBefore();
         doc = session.createDocumentModel("/", "testBlob", "MultiBlobDoc");
         addBlob(doc, Blobs.createBlob("one"));

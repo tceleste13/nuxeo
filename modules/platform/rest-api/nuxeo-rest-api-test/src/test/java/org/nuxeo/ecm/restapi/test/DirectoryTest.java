@@ -87,14 +87,14 @@ public class DirectoryTest extends BaseTest {
 
     @Override
     @Before
-    public void doBefore() throws Exception {
+    public void doBefore() {
         super.doBefore();
         dirSession = ds.open(TESTDIRNAME);
     }
 
     @Override
     @After
-    public void doAfter() throws Exception {
+    public void doAfter() {
         if (dirSession != null) {
             dirSession.close();
         }
@@ -115,8 +115,7 @@ public class DirectoryTest extends BaseTest {
 
         assertEquals(DirectoryEntryJsonWriter.ENTITY_TYPE, node.get("entity-type").asText());
         assertEquals(TESTDIRNAME, node.get("directoryName").asText());
-        assertEquals(docEntry.getPropertyValue("vocabulary:label"),
-                node.get("properties").get("label").asText());
+        assertEquals(docEntry.getPropertyValue("vocabulary:label"), node.get("properties").get("label").asText());
 
     }
 
@@ -402,8 +401,7 @@ public class DirectoryTest extends BaseTest {
 
         assertEquals(DirectoryEntryJsonWriter.ENTITY_TYPE, node.get("entity-type").asText());
         assertEquals(TESTDIRNAME, node.get("directoryName").asText());
-        assertEquals(docEntry.getPropertyValue("vocabulary:label"),
-                node.get("properties").get("label").asText());
+        assertEquals(docEntry.getPropertyValue("vocabulary:label"), node.get("properties").get("label").asText());
     }
 
     @Test
