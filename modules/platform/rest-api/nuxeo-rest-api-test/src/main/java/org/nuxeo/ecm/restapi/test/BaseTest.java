@@ -40,6 +40,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.jaxrs.test.CloseableClientResponse;
 import org.nuxeo.jaxrs.test.JerseyClientHelper;
+import org.nuxeo.jaxrs.test.JerseyClientHelper.ApacheHttpClientBuilder;
 import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
@@ -114,8 +115,27 @@ public class BaseTest {
         if (client != null) {
             client.destroy();
         }
-        client = JerseyClientHelper.clientBuilder().setCredentials(username, password).build();
+        client = getClientBuilder().setCredentials(username, password).build();
         return client.resource(resource);
+    }
+
+    /**
+     * Can be overridden in subclasses to configure the Apache HTTP client, typically by setting a custom connection
+     * timeout with:
+     *
+     * <pre>{@code
+     * @Override
+     * protected ApacheHttpClientBuilder getClientBuilder() {
+     *     return super.getClientBuilder().setConnectionRequestTimeout(100000)
+     *                                    .setConnectTimeout(100000)
+     *                                    .setSocketTimeout(100000);
+     * }
+     * }</pre>
+     *
+     * @since 2023.7
+     */
+    protected ApacheHttpClientBuilder getClientBuilder() {
+        return JerseyClientHelper.clientBuilder();
     }
 
     @Inject
