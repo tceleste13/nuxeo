@@ -103,7 +103,7 @@ public class SearchTest extends BaseTest {
             // Then I get document listing as result
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(20, getLogEntries(node).size());
+            assertEquals(20, getEntries(node).size());
         }
 
         // Given parameters as page size and ordered parameters
@@ -118,7 +118,7 @@ public class SearchTest extends BaseTest {
             // Then I get document listing as result
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(2, getLogEntries(node).size());
+            assertEquals(2, getEntries(node).size());
         }
     }
 
@@ -140,7 +140,7 @@ public class SearchTest extends BaseTest {
             // Then I get document listing as result
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(2, getLogEntries(node).size());
+            assertEquals(2, getEntries(node).size());
         }
     }
 
@@ -156,7 +156,7 @@ public class SearchTest extends BaseTest {
             // Then I get document listing as result
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            List<JsonNode> entries = getLogEntries(node);
+            List<JsonNode> entries = getEntries(node);
             assertEquals(2, entries.size());
             JsonNode jsonNode = entries.get(0);
             assertEquals("Note 2", jsonNode.get("title").asText());
@@ -195,7 +195,7 @@ public class SearchTest extends BaseTest {
 
                 assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
                 JsonNode node = mapper.readTree(response.getEntityInputStream());
-                assertEquals(1, getLogEntries(node).size());
+                assertEquals(1, getEntries(node).size());
                 String retrievedTitle = ((ArrayNode) node.get("entries")).get(0).get("title").textValue();
                 assertEquals(notes.get(i).get("title").textValue(), retrievedTitle);
             }
@@ -211,7 +211,7 @@ public class SearchTest extends BaseTest {
 
                 assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
                 JsonNode node = mapper.readTree(response.getEntityInputStream());
-                assertEquals(1, getLogEntries(node).size());
+                assertEquals(1, getEntries(node).size());
                 String retrievedTitle = ((ArrayNode) node.get("entries")).get(0).get("title").textValue();
                 assertEquals(notes.get(i).get("title").textValue(), retrievedTitle);
             }
@@ -232,7 +232,7 @@ public class SearchTest extends BaseTest {
             // Then I get document listing as result
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            List<JsonNode> entries = getLogEntries(node);
+            List<JsonNode> entries = getEntries(node);
             assertEquals(2, entries.size());
             JsonNode jsonNode = entries.get(0);
             assertEquals("Note 1", jsonNode.get("title").asText());
@@ -268,7 +268,7 @@ public class SearchTest extends BaseTest {
             // Then I get document listing as result
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(2, getLogEntries(node).size());
+            assertEquals(2, getEntries(node).size());
         }
     }
 
@@ -285,7 +285,7 @@ public class SearchTest extends BaseTest {
             // Then I get document listing as result
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(2, getLogEntries(node).size());
+            assertEquals(2, getEntries(node).size());
 
             assertTrue(node.get("quickFilters").isArray());
             assertEquals(3, node.get("quickFilters").size());
@@ -311,7 +311,7 @@ public class SearchTest extends BaseTest {
             // Then I get document listing as result
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(2, getLogEntries(node).size());
+            assertEquals(2, getEntries(node).size());
         }
 
         try (CloseableClientResponse response = getResponse(RequestType.GET,
@@ -319,7 +319,7 @@ public class SearchTest extends BaseTest {
 
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(20, getLogEntries(node).size());
+            assertEquals(20, getEntries(node).size());
         }
     }
 
@@ -338,7 +338,7 @@ public class SearchTest extends BaseTest {
             // Then I get document listing as result
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            nbResults = getLogEntries(node).size();
+            nbResults = getEntries(node).size();
         }
 
         // When I set the quick filters the other way around
@@ -350,7 +350,7 @@ public class SearchTest extends BaseTest {
             // Then I expect the same number of result
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(nbResults, getLogEntries(node).size());
+            assertEquals(nbResults, getEntries(node).size());
         }
     }
 
@@ -371,7 +371,7 @@ public class SearchTest extends BaseTest {
                 getSearchPageProviderExecutePath("default_search"), queryParams)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            List<JsonNode> entries = getLogEntries(node);
+            List<JsonNode> entries = getEntries(node);
             assertEquals(6, entries.size());
             assertEquals("Note 4", entries.get(0).get("title").textValue());
             assertEquals("Note 3", entries.get(1).get("title").textValue());
@@ -386,7 +386,7 @@ public class SearchTest extends BaseTest {
                 getSearchPageProviderExecutePath("default_search"), queryParams)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            List<JsonNode> entries = getLogEntries(node);
+            List<JsonNode> entries = getEntries(node);
             assertEquals(5, entries.size());
             assertEquals("Note 4", entries.get(0).get("title").textValue());
             assertEquals("Note 3", entries.get(1).get("title").textValue());
@@ -416,7 +416,7 @@ public class SearchTest extends BaseTest {
                 getSearchPageProviderExecutePath("namedParamProviderWithDoc"), queryParams)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(1, getLogEntries(node).size());
+            assertEquals(1, getEntries(node).size());
         }
     }
 
@@ -442,7 +442,7 @@ public class SearchTest extends BaseTest {
                 getSearchPageProviderExecutePath("namedParamProviderWithWhereClause"), queryParams)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(1, getLogEntries(node).size());
+            assertEquals(1, getEntries(node).size());
         }
 
         // retry without params
@@ -450,7 +450,7 @@ public class SearchTest extends BaseTest {
                 getSearchPageProviderExecutePath("namedParamProviderWithWhereClause"))) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(2, getLogEntries(node).size());
+            assertEquals(2, getEntries(node).size());
         }
     }
 
@@ -465,7 +465,7 @@ public class SearchTest extends BaseTest {
                 getSearchPageProviderExecutePath("namedParamProviderComplex"), queryParams)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(1, getLogEntries(node).size());
+            assertEquals(1, getEntries(node).size());
         }
 
         // remove filter on dates
@@ -475,7 +475,7 @@ public class SearchTest extends BaseTest {
                 getSearchPageProviderExecutePath("namedParamProviderComplex"), queryParams)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(1, getLogEntries(node).size());
+            assertEquals(1, getEntries(node).size());
 
         }
 
@@ -484,7 +484,7 @@ public class SearchTest extends BaseTest {
                 getSearchPageProviderExecutePath("namedParamProviderComplex"), queryParams)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(2, getLogEntries(node).size());
+            assertEquals(2, getEntries(node).size());
         }
     }
 
@@ -843,7 +843,7 @@ public class SearchTest extends BaseTest {
                 getSavedSearchExecutePath(RestServerInit.getSavedSearchId(1, session)))) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(2, getLogEntries(node).size());
+            assertEquals(2, getEntries(node).size());
         }
     }
 
@@ -855,7 +855,7 @@ public class SearchTest extends BaseTest {
                 getSavedSearchExecutePath(RestServerInit.getSavedSearchId(1, session)), queryParams)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(5, getLogEntries(node).size());
+            assertEquals(5, getEntries(node).size());
         }
     }
 
@@ -865,7 +865,7 @@ public class SearchTest extends BaseTest {
                 getSavedSearchExecutePath(RestServerInit.getSavedSearchId(2, session)))) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(2, getLogEntries(node).size());
+            assertEquals(2, getEntries(node).size());
         }
     }
 
@@ -879,7 +879,7 @@ public class SearchTest extends BaseTest {
                 getSavedSearchExecutePath(RestServerInit.getSavedSearchId(3, session)))) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(2, getLogEntries(node).size());
+            assertEquals(2, getEntries(node).size());
         }
     }
 

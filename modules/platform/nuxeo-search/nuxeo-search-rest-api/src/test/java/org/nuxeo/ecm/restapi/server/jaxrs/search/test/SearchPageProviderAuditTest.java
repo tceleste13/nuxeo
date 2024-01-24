@@ -62,7 +62,7 @@ public class SearchPageProviderAuditTest extends BaseTest {
                 "search/pp/" + LATEST_CREATED_USERS_OR_GROUPS_PROVIDER + "/execute")) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            List<JsonNode> entries = getLogEntries(node);
+            List<JsonNode> entries = getEntries(node);
             assertTrue(entries.isEmpty());
         }
 
@@ -89,7 +89,7 @@ public class SearchPageProviderAuditTest extends BaseTest {
             // Then I get user & group as document listing
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            List<JsonNode> entries = getLogEntries(node);
+            List<JsonNode> entries = getEntries(node);
             assertEquals(2, entries.size());
             JsonNode jsonNode = entries.get(0);
             assertEquals("my_user", jsonNode.get("title").asText());

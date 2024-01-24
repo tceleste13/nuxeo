@@ -170,7 +170,7 @@ public class TestPageProviders extends BaseTest {
         try (CloseableClientResponse res = getResponse(RequestType.GET, "search/pp/" + ppName + "/execute",
                 queryParams)) {
             assertEquals(Response.Status.OK.getStatusCode(), res.getStatus());
-            List<JsonNode> logEntries = getLogEntries(mapper.readTree(res.getEntityInputStream()));
+            List<JsonNode> logEntries = getEntries(mapper.readTree(res.getEntityInputStream()));
 
             consumer.accept(logEntries);
         }

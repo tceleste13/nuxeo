@@ -129,7 +129,7 @@ public class BulkActionTest extends BaseTest {
 
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            List<JsonNode> noteNodes = getLogEntries(node);
+            List<JsonNode> noteNodes = getEntries(node);
             assertTrue(noteNodes.isEmpty());
         }
     }
@@ -179,7 +179,7 @@ public class BulkActionTest extends BaseTest {
 
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             JsonNode node = mapper.readTree(response.getEntityInputStream());
-            List<JsonNode> noteNodes = getLogEntries(node);
+            List<JsonNode> noteNodes = getEntries(node);
             for (JsonNode noteNode : noteNodes) {
                 assertEquals("bulk desc", noteNode.get("properties").get("dc:description").textValue());
             }
