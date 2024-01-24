@@ -27,6 +27,7 @@ import org.nuxeo.ecm.core.schema.SchemaNames;
 import org.nuxeo.ecm.core.schema.types.constraints.Constraint;
 import org.nuxeo.ecm.core.schema.types.constraints.TypeConstraint;
 import org.nuxeo.ecm.core.schema.types.resolver.ObjectResolver;
+import org.nuxeo.runtime.api.Framework;
 
 /**
  * Primitive type (basic types like long, string, boolean, etc.).
@@ -34,6 +35,9 @@ import org.nuxeo.ecm.core.schema.types.resolver.ObjectResolver;
 public abstract class PrimitiveType extends AbstractType implements SimpleType {
 
     private static final long serialVersionUID = -2698475002119528248L;
+
+    /** @since 2023.8 */
+    public static final String PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY = "nuxeo.primitive.type.strict.validation";
 
     protected PrimitiveType(String name) {
         super(null, SchemaNames.BUILTIN, name);
@@ -84,6 +88,10 @@ public abstract class PrimitiveType extends AbstractType implements SimpleType {
         Set<Constraint> constraints = new HashSet<>();
         constraints.add(new TypeConstraint(this));
         return constraints;
+    }
+
+    protected boolean isStrictValidation() {
+        return Framework.isBooleanPropertyTrue(PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY);
     }
 
 }

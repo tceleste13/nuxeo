@@ -68,6 +68,11 @@ public final class IntegerType extends PrimitiveType {
         if (StringUtils.isEmpty(str)) {
             return null;
         }
+        // if strict validation is enabled, throw when input string cannot be decoded as an Integer
+        if (isStrictValidation()) {
+            return Integer.valueOf(str);
+        }
+        // strict validation not enabled, fall back on default value: 0
         try {
             return Integer.valueOf(str);
         } catch (NumberFormatException e) {

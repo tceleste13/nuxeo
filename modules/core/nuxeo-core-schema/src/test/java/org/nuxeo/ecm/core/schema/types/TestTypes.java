@@ -22,8 +22,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.ecm.core.schema.types.PrimitiveType.PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -45,6 +47,7 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
@@ -144,12 +147,26 @@ public class TestTypes {
         assertFalse(type.validate(true));
 
         // Conversion tests
-        assertNull(type.decode(""));
         assertEquals(0, type.convert(0));
         assertEquals(0, type.convert("0"));
         assertEquals(0, type.convert(0.5));
         assertNull(type.convert("abc"));
+
+        // Decoding tests
+        assertNull(type.decode(""));
         assertEquals(0, type.decode("0"));
+        assertEquals(10, type.decode("10"));
+        // By default, a string that cannot be decoded as an Integer is decoded as 0
+        assertEquals(0, type.decode("foo"));
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
+    public void testIntegerTypeStrictValidation() throws TypeException {
+        SimpleType type = IntegerType.INSTANCE;
+
+        // If strict validation is enabled, an exception is thrown when a string cannot be decoded as an Integer
+        assertThrows(NumberFormatException.class, () -> type.decode("foo"));
     }
 
     @Test
@@ -172,13 +189,42 @@ public class TestTypes {
         assertFalse(type.validate(""));
 
         // Conversion tests
-        assertNull(type.decode(""));
         assertEquals(0.0, type.convert(0));
         assertEquals(0.5, type.convert(0.5));
         assertEquals(3.14, type.convert("3.14"));
         assertNull(type.convert("abc"));
-        assertEquals(0.0, type.decode("0.0"));
-        assertEquals(3.14, type.decode("3.14"));
+
+        // Decoding tests
+        assertNull(type.decode(""));
+        assertEquals(0.0D, type.decode("0.0"));
+        assertEquals(3.14D, type.decode("3.14"));
+        assertEquals(3.14D, type.decode("3.14d"));
+        assertEquals(3.14D, type.decode("3.14D"));
+        assertEquals(3.14D, type.decode("3.14f"));
+        assertEquals(3.14D, type.decode("3.14F"));
+        assertEquals(10D, type.decode("10d"));
+        assertEquals(10D, type.decode("10D"));
+        assertEquals(10D, type.decode("10f"));
+        assertEquals(10D, type.decode("10F"));
+        // By default, a string that cannot be decoded as a Double is decoded as 0.0
+        assertEquals(0.0D, type.decode("foo"));
+        assertEquals(0.0D, type.decode("d"));
+        assertEquals(0.0D, type.decode("D"));
+        assertEquals(0.0D, type.decode("f"));
+        assertEquals(0.0D, type.decode("F"));
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
+    public void testDoubleTypeStrictValidation() throws TypeException {
+        SimpleType type = DoubleType.INSTANCE;
+
+        // If strict validation is enabled, an exception is thrown when a string cannot be decoded as a Double
+        assertThrows(NumberFormatException.class, () -> type.decode("foo"));
+        assertThrows(NumberFormatException.class, () -> type.decode("d"));
+        assertThrows(NumberFormatException.class, () -> type.decode("D"));
+        assertThrows(NumberFormatException.class, () -> type.decode("f"));
+        assertThrows(NumberFormatException.class, () -> type.decode("F"));
     }
 
     @Test
@@ -200,12 +246,41 @@ public class TestTypes {
         assertFalse(type.validate(true));
 
         // Conversion tests
-        assertNull(type.decode(""));
         assertEquals(0L, type.convert(0));
         assertEquals(0L, type.convert("0"));
         assertEquals(0L, type.convert(0.5));
         assertNull(type.convert("abc"));
+
+        // Decoding tests
+        assertNull(type.decode(""));
         assertEquals(0L, type.decode("0"));
+        assertEquals(10L, type.decode("10"));
+        // By default, a string that cannot be decoded as a Long is decoded as 0
+        assertEquals(0L, type.decode("1l"));
+        assertEquals(0L, type.decode("1L"));
+        assertEquals(0L, type.decode("10l"));
+        assertEquals(0L, type.decode("10L"));
+        assertEquals(0L, type.decode("foo"));
+        assertEquals(0L, type.decode("l"));
+        assertEquals(0L, type.decode("L"));
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
+    public void testLongTypeStrictValidation() throws TypeException {
+        SimpleType type = LongType.INSTANCE;
+
+        // If strict validation is enabled, the Java's L number (long) specification is handled and such strings can be
+        // decoded as a Long
+        assertEquals(1L, type.decode("1l"));
+        assertEquals(1L, type.decode("1L"));
+        assertEquals(10L, type.decode("10l"));
+        assertEquals(10L, type.decode("10L"));
+
+        // If strict validation is enabled, an exception is thrown when a string cannot be decoded as a Long
+        assertThrows(NumberFormatException.class, () -> type.decode("foo"));
+        assertThrows(NumberFormatException.class, () -> type.decode("l"));
+        assertThrows(NumberFormatException.class, () -> type.decode("L"));
     }
 
     @Test

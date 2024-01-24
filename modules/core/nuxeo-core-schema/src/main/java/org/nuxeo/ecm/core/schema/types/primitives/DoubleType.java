@@ -68,6 +68,13 @@ public final class DoubleType extends PrimitiveType {
         if (StringUtils.isEmpty(str)) {
             return null;
         }
+        // if strict validation is enabled, throw when input string cannot be decoded as a Double
+        if (isStrictValidation()) {
+            // No need to handle Java's D number (double) and F number (float) specification like in LongType, it is
+            // handled by the Double class.
+            return Double.valueOf(str);
+        }
+        // strict validation not enabled, fall back on default value: 0.0
         try {
             return Double.valueOf(str);
         } catch (NumberFormatException e) {

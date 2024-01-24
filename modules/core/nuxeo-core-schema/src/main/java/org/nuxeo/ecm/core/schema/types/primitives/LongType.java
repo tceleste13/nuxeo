@@ -68,6 +68,19 @@ public final class LongType extends PrimitiveType {
         if (StringUtils.isEmpty(str)) {
             return null;
         }
+        // if strict validation is enabled, throw when input string cannot be decoded as a Long
+        if (isStrictValidation()) {
+            // handle Java's L number (long) specification
+            String longValue = str.toLowerCase();
+            if ("l".equals(longValue)) {
+                throw new NumberFormatException(str);
+            }
+            if (longValue.endsWith("l")) {
+                longValue = str.substring(0, str.length() - 1);
+            }
+            return Long.valueOf(longValue);
+        }
+        // strict validation not enabled, fall back on default value: 0
         try {
             return Long.valueOf(str);
         } catch (NumberFormatException e) {
