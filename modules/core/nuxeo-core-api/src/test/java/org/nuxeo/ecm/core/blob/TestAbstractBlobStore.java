@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.core.blob;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -30,12 +31,17 @@ import static org.nuxeo.ecm.core.blob.AbstractBlobStore.BYTE_RANGE_SEP;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
+import org.awaitility.Duration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -326,6 +332,38 @@ public abstract class TestAbstractBlobStore {
     }
 
     @Test
+    public void testDirectDownload() throws IOException {
+        assumeTrue(bp.allowDirectDownload());
+
+        // store blob
+        String key1 = bs.writeBlob(blobContext(ID1, FOO));
+        assertKey(ID1, key1);
+        // construct an actual Blob for it
+        BlobInfo blobInfo = new BlobInfo();
+        blobInfo.key = "test:" + key1;
+        ManagedBlob blob = (ManagedBlob) bp.readBlob(blobInfo);
+        blob.setFilename("foo.txt");
+        Duration expiration = Duration.TWO_SECONDS;
+        long l = System.currentTimeMillis();
+        URI uri = bp.getURI(blob, BlobManager.UsageHint.DOWNLOAD, null);
+        assertNotNull(uri);
+        URL url = uri.toURL();
+        long timeElapsed = System.currentTimeMillis() - l;
+        assumeTrue("Test was too slow!", timeElapsed < expiration.getValueInMS());
+        try (InputStream in = url.openStream()) {
+            String actual = IOUtils.toString(in, Charset.defaultCharset());
+            assertEquals(FOO, actual);
+        }
+        // Check download link expired after delay
+        await().atMost(Duration.FIVE_SECONDS).pollDelay(expiration).untilAsserted(() -> {
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+            assertEquals(403, connection.getResponseCode());
+        });
+    }
+
+    @Test
     public void testWriteFromSameBlobProvier() throws IOException {
         // store blob
         String key1 = bs.writeBlob(blobContext(ID1, FOO));
@@ -413,7 +451,7 @@ public abstract class TestAbstractBlobStore {
 
     @Test
     public void testGC() throws IOException {
-        // doesn't bring anything over the LocalBlobStore GC test;  avoid additional setup for this
+        // doesn't bring anything over the LocalBlobStore GC test; avoid additional setup for this
         assumeFalse("GC not tested in transactional blob store", bp.isTransactional());
 
         // store blob
@@ -503,7 +541,7 @@ public abstract class TestAbstractBlobStore {
 
     @Test
     public void testGCWithConcurrentCreation() throws IOException {
-        // doesn't bring anything over the LocalBlobStore GC test;  avoid additional setup for this
+        // doesn't bring anything over the LocalBlobStore GC test; avoid additional setup for this
         assumeFalse("GC not tested in transactional blob store", bp.isTransactional());
 
         // store blob
