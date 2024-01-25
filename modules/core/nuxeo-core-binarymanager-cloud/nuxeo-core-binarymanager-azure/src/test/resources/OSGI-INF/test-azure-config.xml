@@ -9,6 +9,8 @@
       <property name="container">${nuxeo.test.azure.provider.test.container}</property>
       <property name="prefix">${nuxeo.test.azure.provider.test.prefix}</property>
       <property name="allowByteRange">true</property>
+      <property name="directdownload">true</property>
+      <property name="directdownload.expire">2</property> <!-- 2 seconds -->
     </blobprovider>
     <blobprovider name="other">
       <class>org.nuxeo.ecm.blob.azure.AzureBlobProvider</class>
@@ -17,6 +19,8 @@
       <property name="container">${nuxeo.test.azure.provider.other.container}</property>
       <property name="prefix">${nuxeo.test.azure.provider.other.prefix}</property>
       <property name="allowByteRange">true</property>
+      <property name="directdownload">true</property>
+      <property name="directdownload.expire">2</property> <!-- 2 seconds -->
     </blobprovider>
   </extension>
 

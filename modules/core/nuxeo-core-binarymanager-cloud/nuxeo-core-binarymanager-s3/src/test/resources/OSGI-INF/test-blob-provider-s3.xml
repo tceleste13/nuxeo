@@ -11,6 +11,8 @@
       <property name="bucket">${nuxeo.test.s3storage.provider.test.bucket}</property>
       <property name="bucket_prefix">${nuxeo.test.s3storage.provider.test.bucket_prefix}</property>
       <property name="allowByteRange">true</property>
+      <property name="directdownload">true</property>
+      <property name="directdownload.expire">2</property> <!-- 2 seconds -->
     </blobprovider>
     <blobprovider name="other">
       <class>org.nuxeo.ecm.blob.s3.S3BlobProvider</class>
@@ -21,6 +23,8 @@
       <property name="bucket">${nuxeo.test.s3storage.provider.other.bucket}</property>
       <property name="bucket_prefix">${nuxeo.test.s3storage.provider.other.bucket_prefix}</property>
       <property name="allowByteRange">true</property>
+      <property name="directdownload">true</property>
+      <property name="directdownload.expire">2</property> <!-- 2 seconds -->
     </blobprovider>
   </extension>
 
