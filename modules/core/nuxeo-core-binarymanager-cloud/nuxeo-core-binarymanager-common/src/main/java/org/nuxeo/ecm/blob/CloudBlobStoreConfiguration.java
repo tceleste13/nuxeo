@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.nuxeo.ecm.core.blob.AbstractBlobStoreConfiguration;
+import org.nuxeo.ecm.core.blob.BlobProviderDescriptor;
 import org.nuxeo.ecm.core.blob.CachingConfiguration;
 import org.nuxeo.ecm.core.blob.DigestConfiguration;
 
@@ -32,11 +33,17 @@ import org.nuxeo.ecm.core.blob.DigestConfiguration;
  */
 public abstract class CloudBlobStoreConfiguration extends AbstractBlobStoreConfiguration {
 
-    public static final String DIRECTDOWNLOAD_PROPERTY = "directdownload";
+    /**
+     * @deprecated since 2023.7, use {@link BlobProviderDescriptor#DIRECTDOWNLOAD_PROPERTY} instead.
+     */
+    @Deprecated
+    public static final String DIRECTDOWNLOAD_PROPERTY = BlobProviderDescriptor.DIRECTDOWNLOAD_PROPERTY;
 
-    public static final String DEFAULT_DIRECTDOWNLOAD = "false";
-
-    public static final String DIRECTDOWNLOAD_EXPIRE_PROPERTY = "directdownload.expire";
+    /**
+     * @deprecated since 2023.7, use {@link BlobProviderDescriptor#DIRECTDOWNLOAD_EXPIRE_PROPERTY} instead.
+     */
+    @Deprecated
+    public static final String DIRECTDOWNLOAD_EXPIRE_PROPERTY = BlobProviderDescriptor.DIRECTDOWNLOAD_EXPIRE_PROPERTY;
 
     public static final long DEFAULT_DIRECTDOWNLOAD_EXPIRE = 60L * 60L; // 1h
 
@@ -61,11 +68,11 @@ public abstract class CloudBlobStoreConfiguration extends AbstractBlobStoreConfi
     }
 
     protected boolean parseDirectDownload() {
-        return Boolean.parseBoolean(getProperty(DIRECTDOWNLOAD_PROPERTY, DEFAULT_DIRECTDOWNLOAD));
+        return Boolean.parseBoolean(getProperty(BlobProviderDescriptor.DIRECTDOWNLOAD_PROPERTY));
     }
 
     protected long parseDirectDownloadExpire() {
-        long expire = getLongProperty(DIRECTDOWNLOAD_EXPIRE_PROPERTY);
+        long expire = getLongProperty(BlobProviderDescriptor.DIRECTDOWNLOAD_EXPIRE_PROPERTY);
         if (expire < 0) {
             expire = DEFAULT_DIRECTDOWNLOAD_EXPIRE;
         }

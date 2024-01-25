@@ -49,7 +49,6 @@ public interface BlobProvider {
      *
      * @param blobProviderId the blob provider id for this binary manager
      * @param properties initialization properties
-     *
      * @since 7.3
      */
     void initialize(String blobProviderId, Map<String, String> properties) throws IOException;
@@ -119,6 +118,15 @@ public interface BlobProvider {
      * @since 11.1
      */
     default boolean allowByteRange() {
+        return false;
+    }
+
+    /**
+     * Checks whether this blob provider allows direct download.
+     *
+     * @since 2023.7
+     */
+    default boolean allowDirectDownload() {
         return false;
     }
 

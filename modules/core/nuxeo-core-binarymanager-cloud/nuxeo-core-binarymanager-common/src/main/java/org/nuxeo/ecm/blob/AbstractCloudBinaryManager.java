@@ -93,11 +93,23 @@ public abstract class AbstractCloudBinaryManager extends CachingBinaryManager im
 
     public static final String DEFAULT_CACHE_MIN_AGE = "3600"; // 1h
 
-    public static final String DIRECTDOWNLOAD_PROPERTY = "directdownload";
+    /**
+     * @deprecated since 2023.7, use {@link BlobProviderDescriptor#DIRECTDOWNLOAD_PROPERTY} instead.
+     */
+    @Deprecated
+    public static final String DIRECTDOWNLOAD_PROPERTY = BlobProviderDescriptor.DIRECTDOWNLOAD_PROPERTY;
 
+    /**
+     * @deprecated since 2023.7, unused.
+     */
+    @Deprecated
     public static final String DEFAULT_DIRECTDOWNLOAD = "false";
 
-    public static final String DIRECTDOWNLOAD_EXPIRE_PROPERTY = "directdownload.expire";
+    /**
+     * @deprecated since 2023.7, use {@link BlobProviderDescriptor#DIRECTDOWNLOAD_EXPIRE_PROPERTY} instead.
+     */
+    @Deprecated
+    public static final String DIRECTDOWNLOAD_EXPIRE_PROPERTY = BlobProviderDescriptor.DIRECTDOWNLOAD_EXPIRE_PROPERTY;
 
     public static final int DEFAULT_DIRECTDOWNLOAD_EXPIRE = 60 * 60; // 1h
 
@@ -108,8 +120,8 @@ public abstract class AbstractCloudBinaryManager extends CachingBinaryManager im
         super.initialize(blobProviderId, properties);
 
         // Enable direct download from the remote binary store
-        directDownload = Boolean.parseBoolean(getProperty(DIRECTDOWNLOAD_PROPERTY, DEFAULT_DIRECTDOWNLOAD));
-        directDownloadExpire = getIntProperty(DIRECTDOWNLOAD_EXPIRE_PROPERTY);
+        directDownload = Boolean.parseBoolean(getProperty(BlobProviderDescriptor.DIRECTDOWNLOAD_PROPERTY));
+        directDownloadExpire = getIntProperty(BlobProviderDescriptor.DIRECTDOWNLOAD_EXPIRE_PROPERTY);
         if (directDownloadExpire < 0) {
             directDownloadExpire = DEFAULT_DIRECTDOWNLOAD_EXPIRE;
         }
