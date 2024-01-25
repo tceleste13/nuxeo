@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.blob;
 
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -90,6 +91,21 @@ public class BlobProviderDescriptor {
      * @since 11.1
      */
     public static final String ALLOW_BYTE_RANGE = "allowByteRange";
+
+    /**
+     * Flags this blob provider as allowing direct download with {@link URI} returned by
+     * {@link BlobProvider#getURI(ManagedBlob, org.nuxeo.ecm.core.blob.BlobManager.UsageHint, javax.servlet.http.HttpServletRequest)}.
+     *
+     * @since 2023.7
+     */
+    public static final String DIRECTDOWNLOAD_PROPERTY = "directdownload";
+
+    /**
+     * Expiration duration of a direct download link (see {@link #DIRECTDOWNLOAD_PROPERTY}) in seconds.
+     *
+     * @since 2023.7
+     */
+    public static final String DIRECTDOWNLOAD_EXPIRE_PROPERTY = "directdownload.expire";
 
     /**
      * A comma-separated list of users that can create blobs in this blob provider based only on a key.

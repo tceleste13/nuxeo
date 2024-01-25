@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.blob;
 
+import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.DIRECTDOWNLOAD_PROPERTY;
 import static org.nuxeo.ecm.core.blob.DigestConfiguration.DIGEST_ALGORITHM_PROPERTY;
 import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
 
@@ -62,6 +63,11 @@ public abstract class BlobStoreBlobProvider extends AbstractBlobProvider {
     }
 
     protected abstract BlobStore getBlobStore(String blobProviderId, Map<String, String> properties) throws IOException;
+
+    @Override
+    public boolean allowDirectDownload() {
+        return Boolean.parseBoolean(properties.get(DIRECTDOWNLOAD_PROPERTY));
+    }
 
     /** @since 11.2 */
     public KeyStrategy getKeyStrategy() {
