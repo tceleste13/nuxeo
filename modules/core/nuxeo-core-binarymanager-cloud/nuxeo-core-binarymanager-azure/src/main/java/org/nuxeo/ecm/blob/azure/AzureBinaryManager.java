@@ -44,7 +44,6 @@ import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 import org.nuxeo.ecm.core.blob.binary.FileStorage;
 
 import com.microsoft.azure.storage.CloudStorageAccount;
-import com.microsoft.azure.storage.StorageCredentialsSharedAccessSignature;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlobClient;
 import com.microsoft.azure.storage.blob.CloudBlobContainer;
@@ -151,9 +150,7 @@ public class AzureBinaryManager extends AbstractCloudBinaryManager {
 
             String sas = blockBlobReference.generateSharedAccessSignature(policy, headers, null);
 
-            CloudBlockBlob signedBlob = new CloudBlockBlob(blockBlobReference.getUri(),
-                    new StorageCredentialsSharedAccessSignature(sas));
-            return signedBlob.getSnapshotQualifiedUri();
+            return URI.create(blockBlobReference.getUri() + "?" + sas);
         } catch (URISyntaxException | InvalidKeyException | StorageException e) {
             throw new IOException(e);
         }

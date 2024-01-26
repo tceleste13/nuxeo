@@ -42,7 +42,6 @@ import org.nuxeo.ecm.core.blob.KeyStrategy;
 import org.nuxeo.ecm.core.blob.KeyStrategyDigest;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 
-import com.microsoft.azure.storage.StorageCredentialsSharedAccessSignature;
 import com.microsoft.azure.storage.StorageException;
 import com.microsoft.azure.storage.blob.CloudBlockBlob;
 import com.microsoft.azure.storage.blob.SharedAccessBlobHeaders;
@@ -137,10 +136,7 @@ public class AzureBlobProvider extends BlobStoreBlobProvider {
             headers.setContentType(getContentTypeHeader(blob));
 
             String sas = blockBlobReference.generateSharedAccessSignature(policy, headers, null);
-
-            CloudBlockBlob signedBlob = new CloudBlockBlob(blockBlobReference.getUri(),
-                    new StorageCredentialsSharedAccessSignature(sas));
-            return signedBlob.getSnapshotQualifiedUri();
+            return URI.create(blockBlobReference.getUri() + "?" + sas);
         } catch (URISyntaxException | InvalidKeyException | StorageException e) {
             throw new IOException(e);
         }
