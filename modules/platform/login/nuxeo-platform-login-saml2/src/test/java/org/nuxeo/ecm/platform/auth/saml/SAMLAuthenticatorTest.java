@@ -31,6 +31,7 @@ import static org.nuxeo.ecm.platform.auth.saml.SAMLFeature.extractQueryParam;
 import static org.nuxeo.ecm.platform.auth.saml.SAMLUtils.SAML_SESSION_KEY;
 import static org.nuxeo.ecm.platform.auth.saml.processor.binding.SAMLInboundBinding.SAML_REQUEST;
 import static org.nuxeo.ecm.platform.auth.saml.processor.binding.SAMLInboundBinding.SAML_RESPONSE;
+import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.LOGIN_ERROR;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -133,6 +134,24 @@ public class SAMLAuthenticatorTest {
 
     @Test
     public void testRetrieveIdentity() {
+        var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
+                                                   .withAttributes()
+                                                   .whenGetParameterThenReturn("RelayState", "/relay");
+        testRetrieveIdentity(requestHandler);
+    }
+
+    // Ensuring the previous error is discarded when retrieving identity allows to chain Saml authentication.
+    @Test
+    public void testSupportChainedAuthentications() {
+        var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
+                                                   .withAttributes()
+                                                   .withAttribute(LOGIN_ERROR, "notNull")
+                                                   .whenGetParameterThenReturn("RelayState", "/relay");
+        testRetrieveIdentity(requestHandler);
+        assertNull(requestHandler.getAttribute(LOGIN_ERROR));
+    }
+
+    protected void testRetrieveIdentity(MockHttpServletRequest requestHandler) {
         Instant now = Instant.now();
         var samlResponse = """
                 <samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
@@ -172,15 +191,13 @@ public class SAMLAuthenticatorTest {
                 </samlp:Response>
                 """.formatted("_" + UUID.randomUUID(), now, "_" + UUID.randomUUID(), now, now, now);
         var encodedSamlResponse = encodeSAMLMessage(samlResponse);
+        requestHandler.whenGetParameterThenReturn(SAML_RESPONSE, encodedSamlResponse);
 
-        var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
-                                                   .withAttributes()
-                                                   .whenGetParameterThenReturn(SAML_RESPONSE, encodedSamlResponse)
-                                                   .whenGetParameterThenReturn("RelayState", "/relay");
         var responseHandler = MockHttpServletResponse.init();
 
         UserIdentificationInfo info = samlAuth.handleRetrieveIdentity(requestHandler.mock(), responseHandler.mock());
 
+        assertNotNull(info);
         assertEquals(info.getUserName(), user.getId());
 
         var redirectUri = requestHandler.getSessionAttributeValue(NXAuthConstants.START_PAGE_SAVE_KEY);

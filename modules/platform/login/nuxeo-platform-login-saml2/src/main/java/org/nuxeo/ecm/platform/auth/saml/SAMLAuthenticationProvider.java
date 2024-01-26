@@ -188,6 +188,9 @@ public class SAMLAuthenticationProvider
         if (processor == null) {
             return null;
         }
+
+        // clean up after potential other providers up the chain
+        request.removeAttribute(LOGIN_ERROR);
         processor.execute(request, response);
 
         // check for processing errors

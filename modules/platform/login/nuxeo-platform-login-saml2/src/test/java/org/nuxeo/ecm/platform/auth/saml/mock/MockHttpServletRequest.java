@@ -90,7 +90,20 @@ public class MockHttpServletRequest {
         }).when(mock).setAttribute(anyString(), any());
         when(mock.getAttribute(anyString())).thenAnswer(
                 invocation -> attributes.get(invocation.<String> getArgument(0)));
+        doAnswer(invocation -> {
+            String key = invocation.getArgument(0);
+            return attributes.remove(key);
+        }).when(mock).removeAttribute(anyString());
         return this;
+    }
+
+    public MockHttpServletRequest withAttribute(String key, Object value) {
+        mock.setAttribute(key, value);
+        return this;
+    }
+
+    public Object getAttribute(String key) {
+        return mock.getAttribute(key);
     }
 
     public MockHttpServletRequest withGetCookieThenReturn(String name, String value) {
