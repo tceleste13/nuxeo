@@ -30,6 +30,9 @@ import static org.nuxeo.ecm.core.model.BaseSession.isRetentionStricMode;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyStore;
@@ -47,6 +50,9 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.Environment;
 import org.nuxeo.ecm.blob.CloudBlobStoreConfiguration;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.blob.PathStrategy;
+import org.nuxeo.ecm.core.blob.PathStrategyFlat;
+import org.nuxeo.ecm.core.blob.PathStrategySubDirs;
 import org.nuxeo.ecm.core.storage.sql.S3Utils;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.aws.AWSConfigurationService;
@@ -264,6 +270,20 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      */
     public final ObjectLockRetentionMode retentionMode;
 
+    /**
+     * The path strategy according to the sub directory depth configuration.
+     *
+     * @since 2023.7
+     */
+    protected final PathStrategy pathStrategy;
+
+    /**
+     * Is backslash "/" the path separator.
+     *
+     * @since 2023.7
+     */
+    protected final boolean pathSeparatorIsBackslash;
+
     public S3BlobStoreConfiguration(Map<String, String> properties) throws IOException {
         super(SYSTEM_PROPERTY_PREFIX, properties);
         cloudFront = new CloudFrontConfiguration(SYSTEM_PROPERTY_PREFIX, properties);
@@ -284,7 +304,15 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         ClientConfiguration clientConfiguration = getClientConfiguration();
         EncryptionMaterials encryptionMaterials = getEncryptionMaterials();
         useClientSideEncryption = encryptionMaterials != null;
-
+        Path p = Paths.get(bucketPrefix);
+        int subDirsDepth = getSubDirsDepth();
+        if (subDirsDepth == 0) {
+            // pathStrategy is not used when subDirsDepth=0 because a bucketPrefix could be in the key - NXP-30632
+            pathStrategy = new PathStrategyFlat(p);
+        } else {
+            pathStrategy = new PathStrategySubDirs(p, subDirsDepth);
+        }
+        pathSeparatorIsBackslash = FileSystems.getDefault().getSeparator().equals("\\");
         AmazonS3Builder<?, ?> s3Builder;
         if (useClientSideEncryption) {
             CryptoConfiguration cryptoConfiguration = new CryptoConfiguration();
@@ -425,6 +453,26 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
             throw new NuxeoException("Missing configuration: " + BUCKET_NAME_PROPERTY);
         }
         return bn;
+    }
+
+    /**
+     * Gets the bucket key for the given blob key taking into account the bucket prefix and the path strategy (sub
+     * directory depth).
+     *
+     * @since 2023.7
+     */
+    protected String bucketKey(String key) {
+        // this allows to retrieve blobs created with a bucketPrefix in the key - NXP-30632
+        // this is a workaround for incorrectly written keys
+        if (getSubDirsDepth() == 0) {
+            return bucketPrefix + key;
+        }
+        String path = pathStrategy.getPathForKey(key).toString();
+        if (pathSeparatorIsBackslash) {
+            // correct for our abuse of Path under Windows
+            path = path.replace("\\", DELIMITER);
+        }
+        return path;
     }
 
     protected String getBucketPrefix() {

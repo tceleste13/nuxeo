@@ -27,10 +27,8 @@ import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Calendar;
 import java.util.Collections;
@@ -57,8 +55,6 @@ import org.nuxeo.ecm.core.blob.KeyStrategy;
 import org.nuxeo.ecm.core.blob.KeyStrategyDigest;
 import org.nuxeo.ecm.core.blob.KeyStrategyDocId;
 import org.nuxeo.ecm.core.blob.PathStrategy;
-import org.nuxeo.ecm.core.blob.PathStrategyFlat;
-import org.nuxeo.ecm.core.blob.PathStrategySubDirs;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 import org.nuxeo.ecm.core.io.download.DownloadHelper;
 import org.nuxeo.ecm.core.model.Repository;
@@ -146,15 +142,8 @@ public class S3BlobStore extends AbstractBlobStore {
         amazonS3 = config.amazonS3;
         bucketName = config.bucketName;
         bucketPrefix = config.bucketPrefix;
-        Path p = Paths.get(bucketPrefix);
-        int subDirsDepth = config.getSubDirsDepth();
-        if (subDirsDepth == 0) {
-            // pathStrategy is not used when subDirsDepth=0 because a bucketPrefix could be in the key - NXP-30632
-            pathStrategy = new PathStrategyFlat(p);
-        } else {
-            pathStrategy = new PathStrategySubDirs(p, subDirsDepth);
-        }
-        pathSeparatorIsBackslash = FileSystems.getDefault().getSeparator().equals("\\");
+        pathStrategy = config.pathStrategy;
+        pathSeparatorIsBackslash = config.pathSeparatorIsBackslash;
         allowByteRange = config.getBooleanProperty(ALLOW_BYTE_RANGE);
         // don't use versions if we use deduplication (including managed case)
         useVersion = keyStrategy instanceof KeyStrategyDocId && isBucketVersioningEnabled();
@@ -220,17 +209,7 @@ public class S3BlobStore extends AbstractBlobStore {
     }
 
     protected String bucketKey(String key) {
-        // this allows to retrieve blobs created with a bucketPrefix in the key - NXP-30632
-        // this is a workaround for incorrectly written keys
-        if (config.getSubDirsDepth() == 0) {
-            return bucketPrefix + key;
-        }
-        String path = pathStrategy.getPathForKey(key).toString();
-        if (pathSeparatorIsBackslash) {
-            // correct for our abuse of Path under Windows
-            path = path.replace("\\", DELIMITER);
-        }
-        return path;
+        return config.bucketKey(key);
     }
 
     @Override
