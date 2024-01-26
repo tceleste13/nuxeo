@@ -80,6 +80,8 @@
       } else if (document.getElementById("fromOffset").checked) {
         url = url + "&fromOffset=" + document.getElementById("offset").value;
         url = url + "&partition=" + document.getElementById("partition").value;
+      } else if (document.getElementById("fromTail").checked) {
+        url = url + "&fromTail=true"
       }
       url = url + "&rewind=" + document.getElementById("rewind").value;
       url = url + "&timeout=" + document.getElementById("timeout").value;
@@ -137,7 +139,11 @@ Streams:
   </div>
   <div>
     <input type="radio" name="from" id="fromBeginning">
-    <label for="fromBeginning">From beginning</label></li>
+    <label for="fromBeginning">From beginning</label>
+  </div>
+  <div>
+    <input type="radio" name="from" id="fromTail">
+    <label for="fromTail">From tail</label>
   </div>
   <div>
     <input type="radio" name="from" id="fromOffset">

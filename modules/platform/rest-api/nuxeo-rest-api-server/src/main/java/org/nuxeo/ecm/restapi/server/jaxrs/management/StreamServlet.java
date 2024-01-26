@@ -89,7 +89,9 @@ public class StreamServlet extends HttpServlet {
         try (LogTailer<Record> tailer = createTailer(manager, params);
                 SseRenderer renderer = new SseRenderer(response)) {
             response.setContentType("text/event-stream");
-
+            if (params.fromTail) {
+                tailer.toEnd();
+            }
             // display lags
             for (int partition = 0; partition < lags.size(); partition++) {
                 if (params.partition >= 0 && partition != params.partition) {
@@ -221,6 +223,8 @@ public class StreamServlet extends HttpServlet {
 
         protected static final String PARAM_FROM_GROUP = "fromGroup";
 
+        protected static final String PARAM_FROM_TAIL = "fromTail";
+
         protected final int limit;
 
         protected final Name stream;
@@ -232,6 +236,8 @@ public class StreamServlet extends HttpServlet {
         protected final Name group;
 
         protected final Name fromGroup;
+
+        protected final boolean fromTail;
 
         protected final int partition;
 
@@ -256,6 +262,9 @@ public class StreamServlet extends HttpServlet {
             } else {
                 fromGroup = null;
             }
+
+            value = request.getParameter(PARAM_FROM_TAIL);
+            fromTail = Boolean.parseBoolean(value);
 
             value = Objects.requireNonNullElse(request.getParameter(PARAM_TIMEOUT), DEFAULT_TIMEOUT);
             try {
