@@ -92,6 +92,7 @@ public class StreamServlet extends HttpServlet {
             if (params.fromTail) {
                 tailer.toEnd();
             }
+
             // display lags
             for (int partition = 0; partition < lags.size(); partition++) {
                 if (params.partition >= 0 && partition != params.partition) {

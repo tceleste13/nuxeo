@@ -1,0 +1,46 @@
+{
+  "type" : "record",
+  "name" : "NuxeoLogEvent",
+  "namespace" : "org.nuxeo.log4j",
+  "fields" : [ {
+    "name" : "instantEpochSecond",
+    "type" : "long"
+  }, {
+    "name" : "instantNanoOfSecond",
+    "type" : "long"
+  }, {
+    "name" : "level",
+    "type" : "int"
+  }, {
+    "name" : "loggerFqcn",
+    "type" : "string"
+  }, {
+    "name" : "loggerName",
+    "type" : "string"
+  }, {
+    "name" : "message",
+    "type" : "string"
+  }, {
+    "name" : "nodeId",
+    "type" : "string"
+  }, {
+    "name" : "pathInfo",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "threadId",
+    "type" : "long"
+  }, {
+    "name" : "threadName",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "thrown",
+    "type" : [ "null", "string" ],
+    "default" : null
+  }, {
+    "name" : "userPrincipal",
+    "type" : [ "null", "string" ],
+    "default" : null
+  } ]
+}

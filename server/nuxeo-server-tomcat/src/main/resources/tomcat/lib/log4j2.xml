@@ -117,6 +117,15 @@
       <ThresholdFilter level="ERROR" onMatch="ACCEPT" />
     </JMS>
     -->
+    <!-- Nuxeo Stream Appender
+    <NuxeoStreamAppender name="STREAM" prefix="nuxeo-" stream="source/log4j" partitions="4" nodeId="nuxeo1">
+      <Property name="bootstrap.servers">kafka:9092</Property>
+      <Property name="default.replication.factor">-1</Property>
+      <Property name="delivery.timeout.ms">120000</Property>
+      <Property name="acks">1</Property>
+      <Property name="client.id">log4j</Property>
+    </NuxeoStreamAppender>
+    -->
   </Appenders>
   <Loggers>
     <!-- ============= -->
@@ -274,6 +283,7 @@
     <Root level="warn">
       <AppenderRef ref="CONSOLE" />
       <AppenderRef ref="FILE" />
+      <!-- AppenderRef ref="STREAM" / -->
     </Root>
   </Loggers>
 </Configuration>

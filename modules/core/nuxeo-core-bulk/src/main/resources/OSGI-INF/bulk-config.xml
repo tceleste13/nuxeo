@@ -12,6 +12,7 @@
     <schema name="BulkStatus-2023.0" file="avro/BulkStatus-0xDA29E947B01E64AA.avsc" />
     <schema name="DataBucket-2023.0" file="avro/DataBucket-0xEB04211B6C6C3B5F.avsc" />
     <schema name="BulkBucket-2023.0" file="avro/BulkBucket-0xCC59A5FF2725F7AF.avsc" />
+    <schema name="NuxeoLogEvent-2023.7" file="avro/NuxeoLogEvent-0xCA271CCAAF986742.avsc" />
     <!-- Register 2021 schemas for smooth upgrade -->
     <schema name="Record-2021.0" file="avro/Record-0xEE727BE73E8D498.avsc" />
     <schema name="BulkCommand-2021.6" file="avro/BulkCommand-0x5F64BA8BF77C9B7D.avsc" />

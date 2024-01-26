@@ -164,6 +164,17 @@
         <include name="mssql-jdbc-*" />
       </fileset>
     </delete>
+    <!-- Required for Nuxeo Stream log4j Appender -->
+    <copy todir="${distribution.dir}/lib" overwrite="true">
+      <fileset dir="${distribution.dir}/nxserver/lib">
+        <include name="nuxeo-stream-*" />
+        <include name="kafka-clients-*" />
+        <include name="opencensus-api-*" />
+        <include name="opencensus-impl-core-*" />
+        <include name="grpc-context-*" />
+        <include name="avro-*" />
+      </fileset>
+    </copy>
     <!-- Move some libraries from nxserver to Tomcat default lib directory -->
     <move todir="${distribution.dir}/lib">
       <fileset dir="${distribution.dir}/nxserver/lib">

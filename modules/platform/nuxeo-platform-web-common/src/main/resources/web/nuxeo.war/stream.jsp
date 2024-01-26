@@ -50,6 +50,8 @@
       for (i = 0; i < arr.length; i++) {
         out += '<option value="' + arr[i].name + '">' + arr[i].name + ' (' + arr[i].partitions + ' partitions)</option>\n';
       }
+      // Explicitly add log4j stream, because it is not part of a stream processor
+      out += '<option value="source/log4j">source/log4j</option>\n';
       let select = document.getElementById("streams");
       select.innerHTML = out;
       select.value = arr[0].name;
