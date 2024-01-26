@@ -73,7 +73,6 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
      */
     public static final String STORE_SCROLL_NAME = "s3BlobScroll";
 
-    // public for tests
     public S3BlobStoreConfiguration config;
 
     @Override
@@ -140,7 +139,7 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
         if (hint != BlobManager.UsageHint.DOWNLOAD || !config.directDownload) {
             return null;
         }
-        String bucketKey = config.bucketPrefix + stripBlobKeyPrefix(blob.getKey());
+        String bucketKey = config.bucketKey(stripBlobKeyPrefix(blob.getKey()));
         Date expiration = new Date(System.currentTimeMillis() + config.directDownloadExpire * 1000);
         try {
             if (config.cloudFront.enabled) {
@@ -223,7 +222,7 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
             objectKey = key.substring(0, seppos);
             versionId = key.substring(seppos + 1);
         }
-        String bucketKey = config.bucketPrefix + objectKey;
+        String bucketKey = config.bucketKey(objectKey);
         GetObjectMetadataRequest request = new GetObjectMetadataRequest(config.bucketName, bucketKey, versionId);
         ObjectMetadata metadata;
         try {
