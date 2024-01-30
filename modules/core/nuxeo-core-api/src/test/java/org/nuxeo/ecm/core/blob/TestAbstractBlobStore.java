@@ -28,6 +28,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.blob.AbstractBlobStore.BYTE_RANGE_SEP;
+import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.DIRECTDOWNLOAD_EXPIRE_PROPERTY;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -335,32 +336,45 @@ public abstract class TestAbstractBlobStore {
     public void testDirectDownload() throws IOException {
         assumeTrue(bp.allowDirectDownload());
 
-        // store blob
-        String key1 = bs.writeBlob(blobContext(ID1, FOO));
-        assertKey(ID1, key1);
-        // construct an actual Blob for it
-        BlobInfo blobInfo = new BlobInfo();
-        blobInfo.key = "test:" + key1;
-        ManagedBlob blob = (ManagedBlob) bp.readBlob(blobInfo);
-        blob.setFilename("foo.txt");
-        Duration expiration = Duration.TWO_SECONDS;
-        long l = System.currentTimeMillis();
-        URI uri = bp.getURI(blob, BlobManager.UsageHint.DOWNLOAD, null);
-        assertNotNull(uri);
-        URL url = uri.toURL();
-        long timeElapsed = System.currentTimeMillis() - l;
-        assumeTrue("Test was too slow!", timeElapsed < expiration.getValueInMS());
-        try (InputStream in = url.openStream()) {
-            String actual = IOUtils.toString(in, Charset.defaultCharset());
-            assertEquals(FOO, actual);
-        }
-        // Check download link expired after delay
-        await().atMost(Duration.FIVE_SECONDS).pollDelay(expiration).untilAsserted(() -> {
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        int testExpiration = Integer.valueOf(bp.getProperties().get(DIRECTDOWNLOAD_EXPIRE_PROPERTY));
+        assertEquals(60, testExpiration);
+        URL urlOneMinute = storeBlobAndGetDirectDownloadURL("test");
+        // direct download link of provider "test" expires in 60 seconds
+        await().atMost(Duration.TEN_SECONDS).pollInterval(Duration.ONE_SECOND).untilAsserted(() -> {
+            try (InputStream in = urlOneMinute.openStream()) {
+                String actual = IOUtils.toString(in, Charset.defaultCharset());
+                assertEquals(FOO, actual);
+            }
+        });
+
+        BlobProvider otherProvider = blobManager.getBlobProvider("other");
+        assumeTrue("Define a 'other' provider with directdownload.expire=1 (seconds)", otherProvider != null);
+        int otherExpiration = Integer.valueOf(otherProvider.getProperties().get(DIRECTDOWNLOAD_EXPIRE_PROPERTY));
+        assertEquals(1, otherExpiration);
+        URL urlOneSecond = storeBlobAndGetDirectDownloadURL("other");
+        // direct download link of "other" provider expires in 1 second
+        await().atMost(Duration.ONE_MINUTE).pollDelay(Duration.ONE_SECOND).untilAsserted(() -> {
+            HttpURLConnection connection = (HttpURLConnection) urlOneSecond.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();
             assertEquals(403, connection.getResponseCode());
         });
+    }
+
+    protected URL storeBlobAndGetDirectDownloadURL(String providerName) throws IOException {
+        BlobProvider provider = blobManager.getBlobProvider(providerName);
+        BlobStore store = ((BlobStoreBlobProvider) provider).store;
+        // store a blob
+        String key = store.writeBlob(blobContext(ID1, FOO));
+        assertKey(ID1, key);
+        // construct an actual Blob for it
+        BlobInfo blobInfo = new BlobInfo();
+        blobInfo.key = providerName + ":" + key;
+        ManagedBlob blob = (ManagedBlob) provider.readBlob(blobInfo);
+        blob.setFilename("foo.txt");
+        URI uri = provider.getURI(blob, BlobManager.UsageHint.DOWNLOAD, null);
+        assertNotNull(uri);
+        return uri.toURL();
     }
 
     @Test
