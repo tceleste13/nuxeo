@@ -10,7 +10,7 @@
       <property name="prefix">${nuxeo.test.azure.provider.test.prefix}</property>
       <property name="allowByteRange">true</property>
       <property name="directdownload">true</property>
-      <property name="directdownload.expire">2</property> <!-- 2 seconds -->
+      <property name="directdownload.expire">60</property> <!-- 60 seconds -->
     </blobprovider>
     <blobprovider name="other">
       <class>org.nuxeo.ecm.blob.azure.AzureBlobProvider</class>
@@ -20,7 +20,7 @@
       <property name="prefix">${nuxeo.test.azure.provider.other.prefix}</property>
       <property name="allowByteRange">true</property>
       <property name="directdownload">true</property>
-      <property name="directdownload.expire">2</property> <!-- 2 seconds -->
+      <property name="directdownload.expire">1</property> <!-- 1 seconds -->
     </blobprovider>
   </extension>
 
