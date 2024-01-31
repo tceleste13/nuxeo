@@ -51,8 +51,6 @@ public class AzureBlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     public static final String CONTAINER_PROPERTY = "container";
 
-    public static final String ENDPOINT_PROTOCOL_PROPERTY = "endpointProtocol";
-
     public static final String PREFIX_PROPERTY = "prefix";
 
     public static final String SYSTEM_PROPERTY_PREFIX = "nuxeo.storage.azure";

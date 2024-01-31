@@ -13,9 +13,7 @@ nuxeo.storage.azure.endpointProtocol=https
 #nuxeo.storage.azure.directdownload=
 #nuxeo.storage.azure.directdownload.expire=
 
-nuxeo.core.binarymanager=org.nuxeo.ecm.blob.azure.AzureBinaryManager
-#nuxeo.core.binarymanager=org.nuxeo.ecm.blob.azure.AzureBlobProvider
+nuxeo.core.binarymanager=org.nuxeo.ecm.blob.azure.AzureBlobProvider
 
 # Enable CDN
 nuxeo.storage.azure.cdn.host=
-#nuxeo.core.binarymanager=org.nuxeo.ecm.blob.azure.AzureCDNBinaryManager

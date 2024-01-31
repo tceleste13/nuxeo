@@ -1,6 +1,6 @@
 # Nuxeo Azure Blob Storage
 
-This addon implements a BinaryManager that stores binaries in an Azure container.
+This addon implements a BlobProvider that stores binaries in an Azure container.
 For efficiency, a local disk cache (with limited size) is also used.
 
 ## Prerequisites
@@ -17,13 +17,13 @@ Configuration properties you have to set in your `nuxeo.conf` file:
 
 Setting up the default BinaryManager that stores all your blobs in Azure:
 
-`nuxeo.core.binarymanager=org.nuxeo.ecm.blob.azure.AzureBinaryManager`
+`nuxeo.core.binarymanager=org.nuxeo.ecm.blob.azure.AzureBlobProvider`
 
 ### Enable CDN Azure Binary Manager
 
-If you want to use Azure CDN as a front instead of Storage; you should read  [Microsoft Azure documentation page](https://azure.microsoft.com/en-us/documentation/articles/cdn-overview/) and create a CDN that is binding to your container. Then, setting the corresponding BinaryManager:
+If you want to use Azure CDN as a front instead of Storage; you should read  [Microsoft Azure documentation page](https://azure.microsoft.com/en-us/documentation/articles/cdn-overview/) and create a CDN that is binding to your container. Then, adding the following parameter:
 
-`nuxeo.core.binarymanager=org.nuxeo.ecm.blob.azure.AzureCDNBinaryManager`
+`nuxeo.storage.azure.cdn.host=azure_cdn_url`
 
 ### Mandatory parameters
 
@@ -36,8 +36,6 @@ If you want to use Azure CDN as a front instead of Storage; you should read  [Mi
 ### Optional parameters
 
 - nuxeo.storage.azure.prefix : the directory prefix to use inside the container
-
-- nuxeo.storage.azure.endpointProtocol : the url protocol (default is `HTTPS`)
 
 - nuxeo.storage.azure.cachesize : size of the local cache (default is `100MB`).
 
