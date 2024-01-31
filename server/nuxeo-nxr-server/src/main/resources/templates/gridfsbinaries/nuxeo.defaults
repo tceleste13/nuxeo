@@ -3,5 +3,5 @@ nuxeo.template.includes=mongodb
 gridfsbinaries.target=.
 
 # mandatory
-nuxeo.core.binarymanager=org.nuxeo.ecm.core.storage.mongodb.GridFSBinaryManager
+nuxeo.core.binarymanager=org.nuxeo.ecm.core.storage.mongodb.blob.GridFSBlobProvider
 nuxeo.mongodb.gridfs.bucket=default.fs
