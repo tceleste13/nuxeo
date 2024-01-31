@@ -33,8 +33,9 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.utils.JDBCUtils;
+import org.nuxeo.ecm.core.blob.BlobProvider;
+import org.nuxeo.ecm.core.blob.LocalBlobProvider;
 import org.nuxeo.ecm.core.blob.binary.BinaryManager;
-import org.nuxeo.ecm.core.blob.binary.DefaultBinaryManager;
 import org.nuxeo.runtime.RuntimeServiceEvent;
 import org.nuxeo.runtime.api.Framework;
 
@@ -52,7 +53,7 @@ public abstract class DatabaseHelper {
 
     public static final String DB_CLASS_NAME_BASE = "org.nuxeo.ecm.core.storage.sql.Database";
 
-    protected static final Class<? extends BinaryManager> defaultBinaryManager = DefaultBinaryManager.class;
+    protected static final Class<? extends BlobProvider> defaultBlobProvider = LocalBlobProvider.class;
 
     static {
         setSystemProperty(DB_PROPERTY, DB_DEFAULT);
@@ -205,7 +206,7 @@ public abstract class DatabaseHelper {
     public void setUp() throws SQLException {
         setOwner();
         setDatabaseName(DEFAULT_DATABASE_NAME);
-        setBinaryManager(defaultBinaryManager, "");
+        setBlobProvider(defaultBlobProvider, "");
         Framework.addListener(event -> {
             if (RuntimeServiceEvent.RUNTIME_STOPPED == event.id) {
                 try {
@@ -230,6 +231,18 @@ public abstract class DatabaseHelper {
         owner = null;
     }
 
+    /**
+     * @since 2023.9
+     */
+    public static void setBlobProvider(Class<? extends BlobProvider> blobProviderClass, String key) {
+        setProperty("nuxeo.test.vcs.binary-manager", blobProviderClass.getName());
+        setProperty("nuxeo.test.vcs.binary-manager-key", key);
+    }
+
+    /**
+     * @deprecated since 2023.9, use {@link #setBlobProvider(Class, String)} instead
+     */
+    @Deprecated(since = "2023.9")
     public static void setBinaryManager(Class<? extends BinaryManager> binaryManagerClass, String key) {
         setProperty("nuxeo.test.vcs.binary-manager", binaryManagerClass.getName());
         setProperty("nuxeo.test.vcs.binary-manager-key", key);

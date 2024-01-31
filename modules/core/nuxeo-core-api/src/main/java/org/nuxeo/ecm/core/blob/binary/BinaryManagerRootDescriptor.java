@@ -38,11 +38,14 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.core.blob.LocalBlobStoreConfiguration;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
  * Descriptor for the configuration of an on-disk binaries storage.
+ *
+ * Still used by {@link LocalBlobStoreConfiguration}.
  */
 @XObject(value = BinaryManagerRootDescriptor.BINARY_STORE)
 public class BinaryManagerRootDescriptor {

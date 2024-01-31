@@ -29,7 +29,10 @@ import org.nuxeo.runtime.api.Framework;
 
 /**
  * Lazy Binary that fetches its remote stream on first access.
+ *
+ * @deprecated since 2023.9
  */
+@Deprecated(since = "2023.9")
 public class LazyBinary extends Binary {
 
     private static final long serialVersionUID = 1L;

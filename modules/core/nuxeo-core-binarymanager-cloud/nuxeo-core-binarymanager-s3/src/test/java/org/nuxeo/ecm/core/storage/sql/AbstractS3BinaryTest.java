@@ -32,6 +32,10 @@ import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
+/**
+ * @deprecated since 2023.9
+ */
+@Deprecated(since = "2023.9")
 public abstract class AbstractS3BinaryTest<T extends S3BinaryManager> extends AbstractTestCloudBinaryManager<T> {
 
     protected static Map<String, String> properties = Collections.emptyMap();

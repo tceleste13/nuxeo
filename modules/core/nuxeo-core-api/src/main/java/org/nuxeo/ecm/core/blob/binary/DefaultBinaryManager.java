@@ -27,6 +27,7 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
+import org.nuxeo.ecm.core.blob.LocalBlobProvider;
 
 /**
  * A simple filesystem-based binary manager. It stores the binaries according to their digest (hash), which means that
@@ -40,9 +41,10 @@ import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
  * <li><em>tmp/</em> temporary storage during creation,</li>
  * <li><em>config.xml</em> a file containing the configuration used.</li>
  * </ul>
- *
  * @author Florent Guillaume
+ * @deprecated since 2023.9, use {@link LocalBlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 public class DefaultBinaryManager extends LocalBinaryManager {
 
     @Override

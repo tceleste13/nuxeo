@@ -22,6 +22,7 @@ package org.nuxeo.ecm.blob;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.nuxeo.ecm.core.blob.AbstractBlobGarbageCollector;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 import org.nuxeo.ecm.core.blob.binary.BinaryManagerStatus;
 import org.nuxeo.ecm.core.blob.binary.CachingBinaryManager;
@@ -29,7 +30,9 @@ import org.nuxeo.ecm.core.blob.binary.CachingBinaryManager;
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
  * @since 7.10
+ * @deprecated since 2023.9, use {@link AbstractBlobGarbageCollector} instead
  */
+@Deprecated(since = "2023.9")
 public abstract class AbstractBinaryGarbageCollector<T extends CachingBinaryManager> implements BinaryGarbageCollector {
 
     protected T binaryManager;

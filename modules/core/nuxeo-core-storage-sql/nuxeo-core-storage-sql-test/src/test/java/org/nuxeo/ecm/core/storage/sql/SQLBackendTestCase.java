@@ -31,7 +31,7 @@ import org.nuxeo.ecm.core.api.PartialList;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobManagerComponent;
 import org.nuxeo.ecm.core.blob.BlobProviderDescriptor;
-import org.nuxeo.ecm.core.blob.binary.DefaultBinaryManager;
+import org.nuxeo.ecm.core.blob.LocalBlobProvider;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.query.QueryFilter;
 import org.nuxeo.ecm.core.repository.RepositoryService;
@@ -107,7 +107,7 @@ public abstract class SQLBackendTestCase {
     protected BlobProviderDescriptor newBlobProviderDescriptor(String name) {
         BlobProviderDescriptor descr = new BlobProviderDescriptor();
         descr.name = name;
-        descr.klass = DefaultBinaryManager.class;
+        descr.klass = LocalBlobProvider.class;
         return descr;
     }
 

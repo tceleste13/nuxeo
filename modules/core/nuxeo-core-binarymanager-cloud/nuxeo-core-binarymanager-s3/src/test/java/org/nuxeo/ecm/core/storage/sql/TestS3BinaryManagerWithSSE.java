@@ -26,7 +26,9 @@ import org.junit.BeforeClass;
  * Tests S3BinaryManager with Server Side Encryption activated.
  *
  * @since 11.1
+ * @deprecated since 2023.9
  */
+@Deprecated(since = "2023.9")
 public class TestS3BinaryManagerWithSSE extends TestS3BinaryManager {
 
     @BeforeClass

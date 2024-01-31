@@ -33,6 +33,7 @@ import org.nuxeo.ecm.core.api.impl.DownloadBlobGuard;
 import org.nuxeo.ecm.core.blob.BlobInfo;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
+import org.nuxeo.ecm.core.blob.BlobStoreBlobProvider;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 
 /**
@@ -41,7 +42,9 @@ import org.nuxeo.ecm.core.blob.ManagedBlob;
  * Can be used by legacy implementations of a {@link BinaryManager} to provide a {@link BlobProvider} implementation.
  *
  * @since 7.3
+ * @deprecated since 2023.9, prefer {@link BlobStoreBlobProvider} implementation instead
  */
+@Deprecated(since = "2023.9")
 public class BinaryBlobProvider implements BlobProvider {
 
     private static final Logger log = LogManager.getLogger(BinaryBlobProvider.class);
@@ -54,6 +57,12 @@ public class BinaryBlobProvider implements BlobProvider {
 
     public BinaryBlobProvider(BinaryManager binaryManager) {
         this.binaryManager = binaryManager;
+    }
+
+    @Override
+    public BinaryGarbageCollector getBinaryGarbageCollector() {
+        BinaryManager binaryManager = getBinaryManager();
+        return binaryManager == null ? null : binaryManager.getGarbageCollector();
     }
 
     @Override

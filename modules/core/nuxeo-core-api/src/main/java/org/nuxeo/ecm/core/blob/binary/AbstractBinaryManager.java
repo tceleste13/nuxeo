@@ -36,12 +36,15 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.nuxeo.common.xmap.XMap;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.blob.BlobStoreBlobProvider;
 
 /**
  * Abstract BinaryManager implementation that provides a few utilities
  *
  * @author Florent Guillaume
+ * @deprecated since 2023.9, prefer {@link BlobStoreBlobProvider} implementation instead
  */
+@Deprecated(since = "2023.9")
 public abstract class AbstractBinaryManager implements BinaryManager {
 
     public static final String MD5_DIGEST = "MD5";

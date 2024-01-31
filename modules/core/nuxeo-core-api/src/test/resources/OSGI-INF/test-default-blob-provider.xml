@@ -2,7 +2,7 @@
 <component name="org.nuxeo.ecm.core.blob.TestDefaultBlobProvider" version="1.0.0">
   <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
     <blobprovider name="repo">
-      <class>org.nuxeo.ecm.core.blob.binary.DefaultBinaryManager</class>
+      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
     </blobprovider>
   </extension>
 </component>

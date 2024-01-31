@@ -46,7 +46,6 @@ import static org.nuxeo.ecm.core.io.download.DownloadService.REQUEST_ATTR_DOWNLO
 import static org.nuxeo.ecm.core.io.download.DownloadService.REQUEST_HEADER_CLIENT_REASON;
 import static org.nuxeo.ecm.core.io.download.DownloadService.REQUEST_QUERY_PARAM_CLIENT_REASON;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -79,9 +78,10 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.UserPrincipal;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
-import org.nuxeo.ecm.core.blob.binary.Binary;
-import org.nuxeo.ecm.core.blob.binary.BinaryBlob;
-import org.nuxeo.ecm.core.blob.binary.DefaultBinaryManager;
+import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
+import org.nuxeo.ecm.core.blob.BlobInfo;
+import org.nuxeo.ecm.core.blob.BlobProvider;
+import org.nuxeo.ecm.core.blob.LocalBlobProvider;
 import org.nuxeo.ecm.core.event.test.CapturingEventListener;
 import org.nuxeo.ecm.core.io.DummyServletOutputStream;
 import org.nuxeo.ecm.core.io.NginxConstants;
@@ -793,15 +793,16 @@ public class TestDownloadService {
     @Deploy("org.nuxeo.ecm.core.api.tests:OSGI-INF/test-default-blob-provider.xml")
     @WithFrameworkProperty(name = NginxConstants.X_ACCEL_ENABLED, value = "true")
     public void testDownloadWithNginxAccel() throws IOException {
-        // create a temporary FileBlob
-        DefaultBinaryManager binaryManager = new DefaultBinaryManager();
-        binaryManager.initialize("repo", Map.of());
-        Blob source = new FileBlob(new ByteArrayInputStream(CONTENT.getBytes(UTF_8)));
-        Binary binary = binaryManager.getBinary(source);
-        String digest = binary.getDigest();
-        String filename = "cafe.txt";
-        long length = binary.getFile().length();
-        Blob blob = new BinaryBlob(binary, digest, filename, "text/plain", "utf-8", "MD5", digest, length);
+        BlobProvider blobProvider = new LocalBlobProvider();
+        blobProvider.initialize("repo", Collections.emptyMap());
+        Blob blob = new StringBlob(CONTENT, "text/plain", "utf-8", "cafe.txt");
+        String digest = blobProvider.writeBlob(blob);
+        BlobInfo blobInfo = new BlobInfo();
+        blobInfo.key = digest;
+        blobInfo.filename = "cafe.txt";
+        blobInfo.encoding = "utf-8";
+        blobInfo.mimeType = "text/plain";
+        blob = blobProvider.readBlob(blobInfo);
 
         // mock request response
         HttpServletRequest req = mock(HttpServletRequest.class);

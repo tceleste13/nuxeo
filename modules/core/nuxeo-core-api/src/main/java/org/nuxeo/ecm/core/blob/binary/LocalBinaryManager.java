@@ -36,6 +36,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.blob.LocalBlobProvider;
 import org.nuxeo.ecm.core.blob.LocalBlobStoreConfiguration;
 import org.nuxeo.runtime.trackers.files.FileEventTracker;
 
@@ -54,7 +55,9 @@ import org.nuxeo.runtime.trackers.files.FileEventTracker;
  *
  * @author Florent Guillaume
  * @since 5.6
+ * @deprecated since 2023.9, use {@link LocalBlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 public class LocalBinaryManager extends AbstractBinaryManager {
 
     private static final Logger log = LogManager.getLogger(LocalBinaryManager.class);

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.ecm.blob.azure.test">
-
+  <!-- Deprecated since 2023.9 in favor of test-azure-config.xml used by AzureBlobProviderFeature.java -->
   <require>org.nuxeo.ecm.core.test.blobmanager</require>
 
   <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">

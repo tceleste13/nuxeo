@@ -68,7 +68,9 @@ import com.google.cloud.storage.StorageException;
  * </ul>
  * <p>
  * Don't set any bucket prefix (nuxeo.gcp.storage.bucket_prefix) as the unit tests don't check it.
+ * @deprecated since 2023.9
  */
+@Deprecated(since = "2023.9")
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
 public class TestGoogleBinaryManager extends AbstractTestCloudBinaryManager<GoogleStorageBinaryManager> {

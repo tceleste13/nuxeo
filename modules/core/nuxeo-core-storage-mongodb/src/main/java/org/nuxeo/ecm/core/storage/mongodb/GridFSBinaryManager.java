@@ -47,6 +47,7 @@ import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 import org.nuxeo.ecm.core.blob.binary.BinaryManager;
 import org.nuxeo.ecm.core.blob.binary.BinaryManagerRootDescriptor;
 import org.nuxeo.ecm.core.blob.binary.BinaryManagerStatus;
+import org.nuxeo.ecm.core.storage.mongodb.blob.GridFSBlobProvider;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.mongodb.MongoDBConnectionService;
 
@@ -70,7 +71,9 @@ import com.mongodb.client.model.Updates;
  * exposes a {@link File}.
  *
  * @since 7.10
+ * @deprecated since 2023.9, use {@link GridFSBlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 public class GridFSBinaryManager extends AbstractBinaryManager implements BlobProvider {
 
     /**
@@ -142,7 +145,6 @@ public class GridFSBinaryManager extends AbstractBinaryManager implements BlobPr
         }
         return filesColl;
     }
-
 
     /**
      * A binary backed by GridFS.
@@ -312,13 +314,13 @@ public class GridFSBinaryManager extends AbstractBinaryManager implements BlobPr
         @Override
         public void stop(boolean delete) {
             getGridFSBucket().find(Filters.exists(String.format("%s.%s", METADATA_PROPERTY_METADATA, msKey), false)) //
-                        .forEach(file -> {
-                            status.numBinariesGC += 1;
-                            status.sizeBinariesGC += file.getLength();
-                            if (delete) {
-                                getGridFSBucket().delete(file.getId());
-                            }
-                        });
+                             .forEach(file -> {
+                                 status.numBinariesGC += 1;
+                                 status.sizeBinariesGC += file.getLength();
+                                 if (delete) {
+                                     getGridFSBucket().delete(file.getId());
+                                 }
+                             });
             startTime = 0;
         }
     }

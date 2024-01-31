@@ -37,7 +37,9 @@ import com.azure.storage.blob.BlobContainerClient;
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
  * @since 7.10
+ * @deprecated since 2023.9
  */
+@Deprecated(since = "2023.9")
 public class AzureFileStorage implements FileStorage {
 
     private static final Logger log = LogManager.getLogger(AzureFileStorage.class);

@@ -44,7 +44,9 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 /**
  * Test ignored as it requires lots of file and tokens. Manually executed
+ * @deprecated since 2023.9
  */
+@Deprecated(since = "2023.9")
 @Ignore("It requires lots of file and tokens. Only manually executed")
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)

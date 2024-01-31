@@ -61,7 +61,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.Ignore;
@@ -2981,7 +2980,7 @@ public class TestSQLRepositoryAPI {
         assertEquals("manifest.mf", blob.getFilename());
         assertNull(blob.getEncoding());
         assertEquals("java/manifest", blob.getMimeType());
-        assertEquals(IOUtils.toByteArray(url).length, blob.getLength());
+        // do not assert URLBlob's length, it is not computed
     }
 
     @Test
@@ -4537,6 +4536,7 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testBinaryGC() throws InterruptedException {
+        assumeTrue("DBS repository has incremental GC", !coreFeature.getStorageConfiguration().isDBS());
         // GC binaries from previous tests
         Thread.sleep(3 * 1000);
         runBinariesGC(true, false);

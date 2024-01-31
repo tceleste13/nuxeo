@@ -18,7 +18,7 @@
     <!-- disable GoogleStorageBinaryManager because it needs to be configured to allow Nuxeo to start -->
     <antcall target="set-conf">
       <param name="name" value="nuxeo.core.binarymanager" />
-      <param name="value" value="org.nuxeo.ecm.core.blob.binary.DefaultBinaryManager" />
+      <param name="value" value="org.nuxeo.ecm.core.blob.LocalBlobProvider" />
     </antcall>
     <copy file="${out.dir}/../../target/test-classes/scheduler-no-delay-config.xml" todir="${nuxeo.home}/nxserver/config/" />
   </target>

@@ -20,22 +20,26 @@ package org.nuxeo.ecm.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.nuxeo.ecm.core.blob.scroll.RepositoryBlobScroll.SCROLL_NAME;
 
 import java.io.IOException;
 
 import javax.inject.Inject;
 
 import org.junit.Test;
+import org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction;
 import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.blob.BlobInfo;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
-import org.nuxeo.ecm.core.blob.binary.BinaryManagerStatus;
+import org.nuxeo.ecm.core.bulk.BulkService;
+import org.nuxeo.ecm.core.bulk.message.BulkCommand;
+import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.model.Document;
 import org.nuxeo.ecm.core.test.FulltextStoredInBlobFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -52,6 +56,9 @@ public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery
     protected BlobManager blobManager;
 
     @Inject
+    protected BulkService bulkService;
+
+    @Inject
     protected DocumentBlobManager documentBlobManager;
 
     @Override
@@ -63,6 +70,7 @@ public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery
     @Override
     @Test
     public void testBinaryText() throws IOException {
+        assumeTrue("Modern GC is only available on MongoDB", coreFeature.getStorageConfiguration().isDBS());
         super.testBinaryText();
 
         Document doc = mock(Document.class);
@@ -81,10 +89,9 @@ public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery
         assertEquals(BINARY_TEXT, ftbp.readBlob(bi).getString());
 
         // check that we can GC and the fulltext blob is still here
-        sleepBeforeGC();
-        BinaryManagerStatus status = documentBlobManager.garbageCollectBinaries(true);
-        assertEquals(2, status.numBinaries); // main blob + fulltext blob
-        assertEquals(0, status.numBinariesGC);
+        BulkStatus gcStatus = triggerAndWaitGC();
+        assertEquals(2, gcStatus.getProcessed()); // main blob + fulltext blob
+        assertEquals(2, gcStatus.getSkipCount());
         blob = documentBlobManager.readBlob(blobInfo, doc, "ecm:fulltextBinary");
         assertEquals(BINARY_TEXT, blob.getString());
 
@@ -93,11 +100,10 @@ public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery
         session.save();
         coreFeature.waitForAsyncCompletion();
 
-        // after GC the fulltext blob is gone
-        sleepBeforeGC();
-        status = documentBlobManager.garbageCollectBinaries(true);
-        assertEquals(0, status.numBinaries);
-        assertEquals(2, status.numBinariesGC);
+        // Incremental GC deleted the fulltext blob
+        gcStatus = triggerAndWaitGC();
+        assertEquals(1, gcStatus.getProcessed()); // fulltext blob
+        assertEquals(0, gcStatus.getSkipCount());
         try {
             blob = documentBlobManager.readBlob(blobInfo, doc, "ecm:fulltextBinary");
             // for BlobStore-derived implementations an empty stream is returned
@@ -109,14 +115,15 @@ public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery
         }
     }
 
-    // sleep before GC to pass its time threshold
-    protected void sleepBeforeGC() {
-        try {
-            Thread.sleep(3_000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new NuxeoException(e);
-        }
+    protected BulkStatus triggerAndWaitGC() {
+        BulkCommand command = new BulkCommand.Builder(GarbageCollectOrphanBlobsAction.ACTION_NAME,
+                session.getRepositoryName(), session.getPrincipal().getName()).repository(session.getRepositoryName())
+                                                                              .useGenericScroller()
+                                                                              .scroller(SCROLL_NAME)
+                                                                              .build();
+        String commandId = bulkService.submit(command);
+        coreFeature.waitForAsyncCompletion();
+        return bulkService.getStatus(commandId);
     }
 
 }

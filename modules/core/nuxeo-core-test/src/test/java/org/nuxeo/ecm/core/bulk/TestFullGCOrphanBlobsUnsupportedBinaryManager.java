@@ -23,22 +23,19 @@ import static org.junit.Assume.assumeTrue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
  * @since 2023.5
+ * @deprecated since 2023.9
  */
+@Deprecated(since = "2023.9")
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class, CoreBulkFeature.class })
-public class TestFullGCOrphanBlobsUnsupported extends AbstractTestUnsupportedFullGCOrphanBlobs {
-
-    @Test
-    public void testUnsupportedDeleteOrphanedBlobOnVCS() {
-        assumeTrue("This test is to make sure Full GC cannot be done on repos without ecm:blobKeys capabilities.",
-                coreFeature.getStorageConfiguration().isVCS());
-        assertdoGCNotImplemented();
-    }
+@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-default-binary-manager.xml")
+public class TestFullGCOrphanBlobsUnsupportedBinaryManager extends AbstractTestUnsupportedFullGCOrphanBlobs {
 
     @Test
     public void testUnsupportedDeleteBlobOnUnsupportedProvider() {

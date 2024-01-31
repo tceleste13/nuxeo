@@ -345,7 +345,9 @@ public interface BlobProvider {
      *
      * @return the binary manager, or {@code null}
      * @since 7.4
+     * @deprecated since 2023.9, Use {@link BlobProvider} instead
      */
+    @Deprecated(since = "2023.9")
     default BinaryManager getBinaryManager() {
         return null;
     }
@@ -357,8 +359,7 @@ public interface BlobProvider {
      * @since 11.1
      */
     default BinaryGarbageCollector getBinaryGarbageCollector() {
-        BinaryManager binaryManager = getBinaryManager();
-        return binaryManager == null ? null : binaryManager.getGarbageCollector();
+        return null;
     }
 
     /**

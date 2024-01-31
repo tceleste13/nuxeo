@@ -44,6 +44,7 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
+@Deprecated(since = "2023.9")
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
 public class TestDefaultBinaryManager {
@@ -65,7 +66,6 @@ public class TestDefaultBinaryManager {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.api")
-    @Deploy("org.nuxeo.ecm.core.api.tests:OSGI-INF/test-default-blob-provider.xml")
     public void testDefaultBinaryManager() throws Exception {
 
         DefaultBinaryManager binaryManager = new DefaultBinaryManager();

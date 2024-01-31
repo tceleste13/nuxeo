@@ -46,7 +46,9 @@ import org.nuxeo.ecm.core.blob.binary.LazyBinary;
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
  * @since 7.10
+ * @deprecated since 2023.9
  */
+@Deprecated(since = "2023.9")
 public abstract class AbstractTestCloudBinaryManager<T extends CachingBinaryManager> {
 
     protected abstract T getBinaryManager() throws IOException;

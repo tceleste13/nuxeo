@@ -108,6 +108,7 @@ public class TestBlobsObject extends ManagementBaseTest {
     }
 
     @Test
+    @Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-default-binary-manager.xml")
     public void testUnsupportedDeleteBlobOnUnsupportedProvider() {
         assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
         assertdoGCNotImplemented();

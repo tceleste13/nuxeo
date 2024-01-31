@@ -29,7 +29,9 @@ import org.nuxeo.ecm.core.blob.ManagedBlob;
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
  * @since 7.10
+ * @deprecated since 2023.9, use {@link AzureBlobProvider} configured with direct download and a CDN host instead
  */
+@Deprecated(since = "2023.9")
 public class AzureCDNBinaryManager extends AzureBinaryManager {
 
     // Resolved using AzureBinaryManager#PROPERTIES_PREFIX as prefix

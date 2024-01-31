@@ -53,6 +53,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 import com.mongodb.client.gridfs.model.GridFSFile;
 
+@Deprecated(since = "2023.9")
 @RunWith(FeaturesRunner.class)
 @Features(MongoDBFeature.class)
 @Deploy("org.nuxeo.ecm.core.api")

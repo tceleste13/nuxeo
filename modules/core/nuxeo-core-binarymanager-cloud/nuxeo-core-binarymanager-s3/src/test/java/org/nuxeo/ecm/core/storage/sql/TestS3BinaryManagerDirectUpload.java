@@ -32,8 +32,10 @@ import org.nuxeo.runtime.test.runner.Deploy;
  * Tests S3DirectBatchHandler with S3BinaryManager.
  *
  * @since 11.5
+ * @deprecated since 2023.9
  */
 @Deploy("org.nuxeo.ecm.core.storage.binarymanager.s3.tests:OSGI-INF/test-s3directupload-contrib.xml")
+@Deprecated(since = "2023.9")
 public class TestS3BinaryManagerDirectUpload extends TestS3DirectUploadAbstract {
 
     @Inject

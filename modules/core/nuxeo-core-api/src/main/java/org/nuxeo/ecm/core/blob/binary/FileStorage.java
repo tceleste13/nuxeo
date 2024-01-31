@@ -21,11 +21,15 @@ package org.nuxeo.ecm.core.blob.binary;
 import java.io.File;
 import java.io.IOException;
 
+import org.nuxeo.ecm.core.blob.BlobStoreBlobProvider;
+
 /**
  * Interface to store a file or fetch a file or its length.
  *
  * @since 5.9.2
+ * @deprecated since 2023.9, prefer {@link BlobStoreBlobProvider} implementation instead
  */
+@Deprecated(since = "2023.9")
 public interface FileStorage {
 
     /**

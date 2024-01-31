@@ -45,6 +45,7 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
+@Deprecated(since = "2023.9")
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
 public class TestAESBinaryManager {

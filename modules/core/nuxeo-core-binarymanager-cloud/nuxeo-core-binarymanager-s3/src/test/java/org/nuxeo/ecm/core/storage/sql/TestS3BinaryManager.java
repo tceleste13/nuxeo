@@ -74,7 +74,9 @@ import com.amazonaws.services.s3.model.S3Object;
  * <li>nuxeo.test.s3storage.bucket System property</li>
  * </ul>
  * and ideally the nuxeo.test.s3storage.bucket_prefixSystem property
+ * @deprecated since 2023.9
  */
+@Deprecated(since = "2023.9")
 @RunWith(FeaturesRunner.class)
 @Features({ RuntimeFeature.class, MockitoFeature.class })
 public class TestS3BinaryManager extends AbstractS3BinaryTest<S3BinaryManager> {

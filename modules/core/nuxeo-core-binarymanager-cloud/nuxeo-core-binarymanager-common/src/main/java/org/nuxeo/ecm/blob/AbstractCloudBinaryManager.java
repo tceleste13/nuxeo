@@ -39,6 +39,7 @@ import org.nuxeo.ecm.core.blob.BlobInfo;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.BlobProviderDescriptor;
+import org.nuxeo.ecm.core.blob.BlobStoreBlobProvider;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.blob.binary.BinaryBlobProvider;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
@@ -51,7 +52,9 @@ import org.nuxeo.runtime.api.Framework;
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
  * @since 7.10
+ * @deprecated since 2023.9, use {@link BlobStoreBlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 public abstract class AbstractCloudBinaryManager extends CachingBinaryManager implements BlobProvider {
 
     private static final Logger log = LogManager.getLogger(AbstractCloudBinaryManager.class);

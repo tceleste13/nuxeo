@@ -36,7 +36,9 @@ import org.nuxeo.runtime.api.Framework;
  *
  * @author Florent Guillaume
  * @author Bogdan Stefanescu
+ * @deprecated since 2023.9
  */
+@Deprecated(since = "2023.9")
 public class Binary implements Serializable {
 
     private static final long serialVersionUID = 1L;

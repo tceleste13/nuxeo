@@ -47,7 +47,9 @@ import com.azure.storage.common.StorageSharedKeyCredential;
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
  * @since 7.10
+ * @deprecated since 2023.9, use {@link AzureBlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 public class AzureBinaryManager extends AbstractCloudBinaryManager {
 
     public static final String ENDPOINT_PROTOCOL_PROPERTY = "endpointProtocol";

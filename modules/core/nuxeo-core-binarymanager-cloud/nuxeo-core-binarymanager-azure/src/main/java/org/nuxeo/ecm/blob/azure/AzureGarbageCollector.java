@@ -27,7 +27,9 @@ import org.nuxeo.ecm.blob.AbstractBinaryGarbageCollector;
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
  * @since 7.10
+ * @deprecated since 2023.9, use {@link AzureBlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 public class AzureGarbageCollector extends AbstractBinaryGarbageCollector<AzureBinaryManager> {
 
     private static final Pattern MD5_RE = Pattern.compile("[0-9a-f]{32}");

@@ -32,6 +32,8 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.http.client.utils.URIBuilder;
+import org.nuxeo.ecm.blob.s3.CloudFrontConfiguration;
+import org.nuxeo.ecm.blob.s3.S3BlobProvider;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 
 import com.amazonaws.AmazonClientException;
@@ -43,7 +45,10 @@ import com.amazonaws.util.IOUtils;
 
 /**
  * @since 9.1
+ * @deprecated since 2023.9, use {@link S3BlobProvider} configured with direct download and
+ *             {@link CloudFrontConfiguration} instead
  */
+@Deprecated(since = "2023.9")
 public class CloudFrontBinaryManager extends S3BinaryManager {
 
     private static final String BASE_PROP = "cloudfront.";
@@ -95,8 +100,10 @@ public class CloudFrontBinaryManager extends S3BinaryManager {
 
             if (isBooleanPropertyTrue(ENABLE_CF_ENCODING_FIX)) {
                 String trimmedChars = " ";
-                uriBuilder.getQueryParams().stream().filter(s -> (s.getValue() != null && s.getValue().contains(trimmedChars))).forEach(
-                        s -> uriBuilder.setParameter(s.getName(), s.getValue().replace(trimmedChars, "")));
+                uriBuilder.getQueryParams()
+                          .stream()
+                          .filter(s -> (s.getValue() != null && s.getValue().contains(trimmedChars)))
+                          .forEach(s -> uriBuilder.setParameter(s.getName(), s.getValue().replace(trimmedChars, "")));
             }
 
             URI uri = uriBuilder.build();
@@ -116,8 +123,8 @@ public class CloudFrontBinaryManager extends S3BinaryManager {
     }
 
     private String buildResourcePath(String s3ObjectKey) {
-        return protocol != Protocol.http && protocol != Protocol.https
-                ? s3ObjectKey : protocol + "://" + distributionDomain + "/" + s3ObjectKey;
+        return protocol != Protocol.http && protocol != Protocol.https ? s3ObjectKey
+                : protocol + "://" + distributionDomain + "/" + s3ObjectKey;
     }
 
     private static PrivateKey loadPrivateKey(String privateKeyPath) throws InvalidKeySpecException, IOException {

@@ -27,9 +27,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -53,11 +53,8 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.blob.BlobProvider;
-import org.nuxeo.ecm.core.blob.binary.BinaryBlobProvider;
+import org.nuxeo.ecm.core.blob.LocalBlobProvider;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
-import org.nuxeo.ecm.core.blob.binary.BinaryManager;
-import org.nuxeo.ecm.core.blob.binary.LocalBinaryManager;
-import org.nuxeo.ecm.core.blob.binary.LocalBinaryManager.DefaultBinaryGarbageCollector;
 import org.nuxeo.ecm.core.transientstore.api.MaximumTransientSpaceExceeded;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreProvider;
@@ -132,9 +129,9 @@ public class TestKeyValueBlobTransientStore {
 
     protected String getBlobProviderStorageDir(TransientStore transientStore) {
         BlobProvider blobProvider = ((KeyValueBlobTransientStore) transientStore).getBlobProvider();
-        BinaryManager binaryManager = ((BinaryBlobProvider) blobProvider).getBinaryManager();
-        File dir = ((LocalBinaryManager) binaryManager).getStorageDir();
-        return dir.getParentFile().getName();
+        LocalBlobProvider bsbp = ((LocalBlobProvider) blobProvider);
+        Path dir = bsbp.getStorageDir();
+        return dir.toFile().getParentFile().getName();
     }
 
     @Test
@@ -318,7 +315,7 @@ public class TestKeyValueBlobTransientStore {
      * Test GC of a blob that's been removed from the underlying blob store by someone else.
      */
     @Test
-    public void testMissingBlobGC() throws Exception {
+    public void testMissingBlobGC() {
         // create a blob
         String key = "foo";
         createBlob(key, "SomeContent");
@@ -335,7 +332,7 @@ public class TestKeyValueBlobTransientStore {
      * Test getting a blob that's been removed from underlying the blob store by someone else.
      */
     @Test
-    public void testMissingBlobGet() throws Exception {
+    public void testMissingBlobGet() {
         // create a blob
         String key = "foo";
         createBlob(key, "SomeContent");
@@ -346,11 +343,8 @@ public class TestKeyValueBlobTransientStore {
         ts.getBlobs(key);
     }
 
-    protected void removeAllBlobsFromBlobProvider() throws Exception {
-        // sleep needed because the GC doesn't remove very young files
-        Thread.sleep(DefaultBinaryGarbageCollector.TIME_RESOLUTION + 100);
-        BinaryGarbageCollector gc = ((KeyValueBlobTransientStore) ts).getBlobProvider()
-                                                                     .getBinaryGarbageCollector();
+    protected void removeAllBlobsFromBlobProvider() {
+        BinaryGarbageCollector gc = ((KeyValueBlobTransientStore) ts).getBlobProvider().getBinaryGarbageCollector();
         gc.start();
         // mark nothing, so remove everything
         gc.stop(true);
@@ -375,14 +369,14 @@ public class TestKeyValueBlobTransientStore {
         };
         Runnable remover = () -> {
             synchronizer.run();
-            for (int i = 0; i < COUNT; i++ ) {
+            for (int i = 0; i < COUNT; i++) {
                 ts.remove(key);
             }
         };
         MutableObject<RuntimeException> exc = new MutableObject<>();
         Runnable getter = () -> {
             synchronizer.run();
-            for (int i = 0; i < COUNT; i++ ) {
+            for (int i = 0; i < COUNT; i++) {
                 ts.putParameter(key, param, value);
                 try {
                     ts.getParameters(key);

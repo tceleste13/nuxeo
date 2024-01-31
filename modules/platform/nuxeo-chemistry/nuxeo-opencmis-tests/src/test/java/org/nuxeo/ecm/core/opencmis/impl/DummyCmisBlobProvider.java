@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.core.opencmis.impl;
 
-import static org.nuxeo.ecm.core.blob.binary.AbstractBinaryManager.MD5_DIGEST;
+import static org.nuxeo.ecm.core.blob.DigestConfiguration.DEFAULT_DIGEST_ALGORITHM;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -33,9 +33,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.blob.BlobManager.UsageHint;
 import org.nuxeo.ecm.core.blob.AbstractBlobProvider;
 import org.nuxeo.ecm.core.blob.BlobInfo;
+import org.nuxeo.ecm.core.blob.BlobManager.UsageHint;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.blob.SimpleManagedBlob;
 
@@ -67,7 +67,7 @@ public class DummyCmisBlobProvider extends AbstractBlobProvider {
 
             @Override
             public String getDigestAlgorithm() {
-                return MD5_DIGEST;
+                return DEFAULT_DIGEST_ALGORITHM;
             }
 
             @Override

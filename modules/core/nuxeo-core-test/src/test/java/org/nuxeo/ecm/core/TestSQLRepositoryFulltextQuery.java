@@ -968,7 +968,12 @@ public class TestSQLRepositoryFulltextQuery {
             listener.clear();
             session.save();
             waitForFulltextIndexing();
-            assertEventSet(listener, "sessionSaved=1");
+            if (coreFeature.getStorageConfiguration().isDBS()) {
+                // With DBS, a blobDeleted event is fired
+                assertEventSet(listener, "blobDeleted=1", "sessionSaved=1");
+            } else {
+                assertEventSet(listener, "sessionSaved=1");
+            }
         }
     }
 

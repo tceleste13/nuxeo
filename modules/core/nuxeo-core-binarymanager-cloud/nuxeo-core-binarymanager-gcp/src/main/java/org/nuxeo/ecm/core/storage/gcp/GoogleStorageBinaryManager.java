@@ -70,7 +70,9 @@ import com.google.cloud.storage.StorageOptions;
  * </ul>
  *
  * @since 10.10-HF12
+ * @deprecated since 2023.9, use {@link GoogleStorageBlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 public class GoogleStorageBinaryManager extends AbstractCloudBinaryManager {
 
     private static final Logger log = LogManager.getLogger(GoogleStorageBinaryManager.class);
@@ -242,6 +244,7 @@ public class GoogleStorageBinaryManager extends AbstractCloudBinaryManager {
     /**
      * Garbage collector for GCP binaries that stores the marked (in use) binaries in memory.
      */
+    @Deprecated
     public static class GoogleStorageBinaryGarbageCollector
             extends AbstractBinaryGarbageCollector<GoogleStorageBinaryManager> {
 

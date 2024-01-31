@@ -95,7 +95,9 @@ import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
  * </pre>
  *
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
+ * @deprecated since 2023.9, use {@link AzureBlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 @RunWith(FeaturesRunner.class)
 @Features(ImagingFeature.class)
 @Deploy("org.nuxeo.ecm.core.storage.binarymanager.azure.test:OSGI-INF/test-blob-provider-azure.xml")

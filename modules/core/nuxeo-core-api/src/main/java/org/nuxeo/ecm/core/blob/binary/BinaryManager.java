@@ -25,10 +25,13 @@ import java.util.Map;
 
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
+import org.nuxeo.ecm.core.blob.BlobProvider;
 
 /**
  * A binary manager stores binaries according to their digest.
+ * @deprecated since 2023.9, use {@link BlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 public interface BinaryManager {
 
     /** In the initialization properties, the property for the store path. */

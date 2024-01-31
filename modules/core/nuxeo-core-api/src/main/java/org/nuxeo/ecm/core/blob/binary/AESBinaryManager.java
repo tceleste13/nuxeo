@@ -54,6 +54,7 @@ import org.apache.logging.log4j.Logger;
 import org.bouncycastle.jcajce.io.CipherInputStream;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.blob.AESBlobProvider;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -85,7 +86,9 @@ import org.nuxeo.runtime.api.Framework;
  * is removed as soon as possible.
  *
  * @since 6.0
+ * @deprecated since 2023.9, use {@link AESBlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 public class AESBinaryManager extends LocalBinaryManager {
 
     private static final Logger log = LogManager.getLogger(AESBinaryManager.class);

@@ -49,6 +49,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.blob.AbstractBinaryGarbageCollector;
 import org.nuxeo.ecm.blob.AbstractCloudBinaryManager;
+import org.nuxeo.ecm.blob.s3.S3BlobProvider;
 import org.nuxeo.ecm.blob.s3.S3ManagedTransfer;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -102,7 +103,10 @@ import com.amazonaws.services.s3.transfer.Upload;
  * <p>
  * Because the BLOB length can be accessed independently of the binary stream, it is also cached in a simple text file
  * if accessed before the stream.
+ *
+ * @deprecated since 2023.9, use {@link S3BlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 public class S3BinaryManager extends AbstractCloudBinaryManager implements S3ManagedTransfer {
 
     private static final Logger log = LogManager.getLogger(S3BinaryManager.class);
@@ -731,6 +735,7 @@ public class S3BinaryManager extends AbstractCloudBinaryManager implements S3Man
     /**
      * Garbage collector for S3 binaries that stores the marked (in use) binaries in memory.
      */
+    @Deprecated
     public static class S3BinaryGarbageCollector extends AbstractBinaryGarbageCollector<S3BinaryManager> {
 
         protected S3BinaryGarbageCollector(S3BinaryManager binaryManager) {

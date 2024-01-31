@@ -19,16 +19,13 @@
 
 package org.nuxeo.elasticsearch.test;
 
+import static org.junit.Assert.assertFalse;
+
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
-import org.opensearch.action.search.SearchRequest;
-import org.opensearch.action.search.SearchResponse;
-import org.opensearch.action.search.SearchType;
-import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.search.builder.SearchSourceBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,8 +35,9 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.model.impl.primitives.BlobProperty;
 import org.nuxeo.ecm.core.blob.BlobManager;
+import org.nuxeo.ecm.core.blob.LocalBlobProvider;
+import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.ElasticSearchConstants;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
@@ -51,6 +49,11 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.opensearch.action.search.SearchRequest;
+import org.opensearch.action.search.SearchResponse;
+import org.opensearch.action.search.SearchType;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.builder.SearchSourceBuilder;
 
 /**
  * Test servcie declaration as well as basic indexing API
@@ -153,13 +156,11 @@ public class TestManualIndexing {
         session.save();
 
         // Remove the binary
-        BlobProperty blobProperty = (BlobProperty) doc.getProperty("file:content");
-        String blobDigest = (String) blobProperty.getValue("digest");
-        manager.getBlobProvider(session.getRepositoryName())
-               .getBinaryManager()
-               .getBinary(blobDigest)
-               .getFile()
-               .delete();
+        ManagedBlob blobProperty = (ManagedBlob) doc.getPropertyValue("file:content");
+        String blobKey = blobProperty.getKey();
+        LocalBlobProvider provider = (LocalBlobProvider) manager.getBlobProvider(blobProperty.getProviderId());
+        provider.store.deleteBlob(blobKey);
+        assertFalse(provider.store.exists(blobKey));
 
         IndexingCommand cmd = new IndexingCommand(doc, Type.INSERT, true, false);
         esi.indexNonRecursive(cmd);

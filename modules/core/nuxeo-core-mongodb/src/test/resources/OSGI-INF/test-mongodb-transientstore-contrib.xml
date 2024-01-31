@@ -3,10 +3,10 @@
 
   <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
     <blobprovider name="default">
-      <class>org.nuxeo.ecm.core.blob.binary.DefaultBinaryManager</class>
+      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
     </blobprovider>
     <blobprovider name="mytransient">
-      <class>org.nuxeo.ecm.core.blob.binary.DefaultBinaryManager</class>
+      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
       <property name="path">mytransientbinaries</property>
       <property name="transient">true</property>
     </blobprovider>

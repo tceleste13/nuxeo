@@ -47,7 +47,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
-import org.nuxeo.ecm.core.blob.binary.BinaryBlob;
+import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.event.test.CapturingEventListener;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
@@ -104,7 +104,7 @@ public class TestFileManagerService {
         assertNotNull(doc);
         assertEquals("hello.doc", doc.getProperty("dublincore", "title"));
         assertNotNull(doc.getProperty("file", "content"));
-        BinaryBlob blob = (BinaryBlob) doc.getProperty("file", "content");
+        ManagedBlob blob = (ManagedBlob) doc.getProperty("file", "content");
         assertEquals("application/msword", blob.getMimeType());
         assertEquals("hello.doc", blob.getFilename());
 
@@ -120,7 +120,7 @@ public class TestFileManagerService {
         assertNotNull(doc);
         assertEquals("hello2.doc", doc.getProperty("dublincore", "title"));
         assertNotNull(doc.getProperty("file", "content"));
-        blob = (BinaryBlob) doc.getProperty("file", "content");
+        blob = (ManagedBlob) doc.getProperty("file", "content");
         assertEquals("application/msword", blob.getMimeType());
         assertEquals("hello2.doc", blob.getFilename());
     }
@@ -140,7 +140,7 @@ public class TestFileManagerService {
         assertNotNull(doc);
         assertEquals("hello3.doc", doc.getProperty("dublincore", "title"));
         assertNotNull(doc.getProperty("file", "content"));
-        BinaryBlob blob = (BinaryBlob) doc.getProperty("file", "content");
+        ManagedBlob blob = (ManagedBlob) doc.getProperty("file", "content");
         assertEquals("application/msword", blob.getMimeType());
         assertEquals("hello3.doc", blob.getFilename());
 
@@ -154,7 +154,7 @@ public class TestFileManagerService {
         assertNotNull(doc);
         assertEquals("hello3.doc", doc.getProperty("dublincore", "title"));
         assertNotNull(doc.getProperty("file", "content"));
-        blob = (BinaryBlob) doc.getProperty("file", "content");
+        blob = (ManagedBlob) doc.getProperty("file", "content");
         assertEquals("application/sometype", blob.getMimeType());
         assertEquals("hello3.doc", blob.getFilename());
     }

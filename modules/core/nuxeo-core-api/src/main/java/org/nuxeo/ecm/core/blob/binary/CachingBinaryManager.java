@@ -33,6 +33,7 @@ import org.nuxeo.common.file.FileCache;
 import org.nuxeo.common.file.LRUFileCache;
 import org.nuxeo.common.utils.SizeUtils;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.blob.CachingBlobStore;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.trackers.files.FileEventTracker;
 
@@ -42,7 +43,9 @@ import org.nuxeo.runtime.trackers.files.FileEventTracker;
  * Initialization of the {@link BinaryManager} must call {@link #initializeCache} from the {@link #initialize} method.
  *
  * @since 5.7
+ * @deprecated since 2023.9, use {@link CachingBlobStore} instead
  */
+@Deprecated(since = "2023.9")
 public abstract class CachingBinaryManager extends AbstractBinaryManager {
 
     private static final Logger log = LogManager.getLogger(CachingBinaryManager.class);

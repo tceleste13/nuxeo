@@ -32,7 +32,9 @@ import org.junit.BeforeClass;
  * see {@link TestS3BinaryManagerWithSSE2AndPolicy} for details about the policy.
  *
  * @since 11.1
+ * @deprecated since 2023.9
  */
+@Deprecated(since = "2023.9")
 public class TestS3BinaryManagerWithSSE2AndPolicy extends TestS3BinaryManager {
 
     public static final String POLICY = "policy";

@@ -35,7 +35,6 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.blob.BlobStore.OptionalOrUnknown;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
-import org.nuxeo.ecm.core.blob.binary.BinaryManager;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -87,11 +86,6 @@ public abstract class BlobStoreBlobProvider extends AbstractBlobProvider {
 
     /** The digest algorithm to use for the default key strategy. */
     protected abstract String getDigestAlgorithm();
-
-    @Override
-    public BinaryManager getBinaryManager() {
-        return null;
-    }
 
     @Override
     public boolean supportsSync() {
