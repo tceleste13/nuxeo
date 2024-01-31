@@ -1,11 +1,11 @@
-This addon implements a BinaryManager that stores binaries in a Google bucket.
+This addon implements a BlobProvider that stores binaries in a Google bucket.
 
 Be sure to protect your nuxeo.conf (readable only by the nuxeo user) as the
 file will have your Google identifiers.
 
 # Mandatory parameters
 
-- `nuxeo.core.binarymanager=org.nuxeo.ecm.core.storage.gcp.GoogleStorageBinaryManager`
+- `nuxeo.core.binarymanager=org.nuxeo.ecm.core.storage.gcp.GoogleStorageBlobProvider`
 
 - `nuxeo.gcp.storage.bucket`: the name of the Google bucket (that will be fetched or created)
 

@@ -2,7 +2,7 @@
 nuxeo.template.includes=
 gcpbinaries.target=.
 
-nuxeo.core.binarymanager=org.nuxeo.ecm.core.storage.gcp.GoogleStorageBinaryManager
+nuxeo.core.binarymanager=org.nuxeo.ecm.core.storage.gcp.GoogleStorageBlobProvider
 
 nuxeo.gcp.storage.bucket=
 nuxeo.gcp.storage.bucket_prefix=
