@@ -17,7 +17,7 @@
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  *     Thomas Roger <troger@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.30"
+library identifier: "platform-ci-shared-library@v0.0.31"
 
 dockerNamespace = 'nuxeo'
 repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
@@ -193,13 +193,13 @@ def buildUnitTestStage(env) {
 def auditNuxeo(namespace) {
   try {
     // check running status
-    sh "ci/scripts/running-status.sh nuxeo.${namespace}.svc.cluster.local/nuxeo"
+    int retryCount = 5
+    sh "ci/scripts/running-status.sh nuxeo.${namespace}.svc.cluster.local/nuxeo ${retryCount}"
     echo "Deployed Nuxeo $VERSION"
   } catch (err) {
     // log only the nuxeo pod
-    def logFile = "${namespace}_nuxeo.log"
-    sh(label: 'Kubernetes.getPodLog', script: "kubectl --namespace=${namespace} logs --tail=-1 -l app.kubernetes.io/instance=nuxeo > ${logFile}")
-    archiveArtifacts allowEmptyArchive: true, artifacts: logFile
+    nxK8s.describePod(namespace: namespace, pod: 'nuxeo')
+    nxK8s.getPodLogs(namespace: namespace, selector: 'app.kubernetes.io/instance=nuxeo', file: "${namespace}_nuxeo.log")
     throw err
   }
 }
