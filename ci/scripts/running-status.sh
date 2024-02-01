@@ -1,6 +1,8 @@
 #!/bin/sh
 
-runningStatus=$(curl $1/runningstatus)
+curlCommand="curl $1/runningstatus -v --retry $2 --retry-connrefused"
+echo "Ruuning command: $curlCommand"
+runningStatus=$($curlCommand)
 echo Running status: $runningStatus
 
 runtimeStatus=$(echo $runningStatus | jq -r '.runtimeStatus')
