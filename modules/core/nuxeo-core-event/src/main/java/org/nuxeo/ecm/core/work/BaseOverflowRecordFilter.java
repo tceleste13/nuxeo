@@ -100,8 +100,8 @@ public abstract class BaseOverflowRecordFilter implements RecordFilter {
         if (record.getData().length <= getThresholdSize()) {
             return record;
         }
-        if (log.isDebugEnabled()) {
-            log.debug(String.format("Record: %s overflow value of size: %d", record.getKey(), record.getData().length));
+        if (log.isWarnEnabled()) {
+            log.warn(String.format("Record: %s overflow value of size: %d", record.getKey(), record.getData().length));
         }
         EnumSet<Record.Flag> flags = EnumSet.copyOf(record.getFlags());
         flags.add(Record.Flag.EXTERNAL_VALUE);
