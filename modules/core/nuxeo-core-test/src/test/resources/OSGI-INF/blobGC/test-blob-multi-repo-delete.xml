@@ -3,14 +3,12 @@
 
   <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
     <blobprovider name="test">
-      <class>org.nuxeo.ecm.core.blob.InMemoryBlobProvider</class>
+      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
       <property name="path">test</property>
-      <property name="emulateLocalFile">true</property>
     </blobprovider>
     <blobprovider name="test2">
-      <class>org.nuxeo.ecm.core.blob.InMemoryBlobProvider</class>
+      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
       <property name="path">test2</property>
-      <property name="emulateLocalFile">true</property>
     </blobprovider>
   </extension>
   <extension target="org.nuxeo.ecm.core.storage.mongodb.MongoDBRepositoryService" point="repository">

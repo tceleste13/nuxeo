@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -93,11 +94,8 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
      */
     public static final String BLOBS_DELETED_DOMAIN_EVENT = "blobDeleted";
 
-    protected static final String DOC_WITH_BLOB_KEYS_QUERY = "SELECT " + NXQL.ECM_UUID + " FROM Document WHERE "
-            + NXQL.ECM_BLOBKEYS + " = '%s'";
-
     protected static final String DOC_WITH_BLOB_KEYS_IN_QUERY = "SELECT " + NXQL.ECM_UUID + " FROM Document WHERE "
-            + NXQL.ECM_BLOBKEYS + " IN (%s)";
+            + NXQL.ECM_BLOBKEYS + " IN ('%s')";
 
     // in these low-level APIs we deal with unprefixed xpaths, so not file:content
     public static final String MAIN_BLOB_XPATH = "content";
@@ -239,12 +237,12 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
                 // is it something we don't have to dispatch?
                 if (!blobDispatcher.getBlobProviderIds().contains(currentProviderId)) {
                     // not something we have to dispatch, reuse the key
-                    return getBlobKeyReplacement(managedBlob);
+                    return getBlobKeyReplacement(managedBlob, true);
                 }
                 dispatch = blobDispatcher.getBlobProvider(doc, blob, xpath);
                 if (dispatch.providerId.equals(currentProviderId)) {
                     // same provider, just reuse the key
-                    return getBlobKeyReplacement(managedBlob);
+                    return getBlobKeyReplacement(managedBlob, dispatch.addPrefix);
                 }
             }
         }
@@ -264,6 +262,10 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
 
     /** A key may have been replaced by an async digest computation, use the new one. */
     protected String getBlobKeyReplacement(ManagedBlob blob) {
+        return getBlobKeyReplacement(blob, true);
+    }
+
+    protected String getBlobKeyReplacement(ManagedBlob blob, boolean addPrefix) {
         String key = blob.getKey();
         String prefix = null;
         int colon = key.indexOf(':');
@@ -273,7 +275,7 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
         }
         key = Framework.getService(BlobManager.class).getBlobKeyReplacement(blob.getProviderId(), key);
         // keep dispatch prefix if there was one originally
-        if (prefix != null) {
+        if (addPrefix && prefix != null) {
             key = prefix + ':' + key;
         }
         return key;
@@ -519,14 +521,26 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
     public boolean deleteBlob(String repositoryName, String key, boolean dryRun) throws IOException {
         checkCanDeleteBlob(repositoryName);
         int colon = key.indexOf(':');
+        boolean hasPrefix = colon > 0;
+        String defaultProviderId = getBlobDispatcher().getBlobProvider(repositoryName);
         String providerId;
-        if (colon < 0) {
-            providerId = getBlobDispatcher().getBlobProvider(repositoryName);
-            if (providerId == null) {
-                throw new IllegalArgumentException("No registered blob provider for key: " + key);
+        Set<String> queryBlobKeys = new HashSet<String>();
+        queryBlobKeys.add(key);
+        String blobId = hasPrefix ? key.substring(colon + 1, key.length()) : key;
+        if (hasPrefix) {
+            providerId = key.substring(0, colon);
+            if (defaultProviderId.equals(providerId)) {
+                // With a single default provider, blob keys are sometimes unprefixed
+                queryBlobKeys.add(blobId);
             }
         } else {
-            providerId = key.substring(0, colon);
+            providerId = defaultProviderId;
+            // With a single default provider, blob keys are sometimes prefixed with provider id
+            queryBlobKeys.add(providerId + ":" + key);
+        }
+        if (hasSharedStorage()) {
+            // With shared storage, we must ensure that the blob is not referenced by any provider
+            getBlobDispatcher().getBlobProviderIds().forEach(pid -> queryBlobKeys.add(pid + ":" + blobId));
         }
         BlobProvider blobProvider = getBlobProvider(providerId);
         if (blobProvider == null) {
@@ -547,20 +561,8 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
         boolean canBeDeleted = TransactionHelper.runInTransaction(
                 () -> CoreInstance.doPrivileged(repositoryName, (CoreSession session) -> {
                     // We need READ on all the repo to do not miss a reference
-                    String query;
-                    if (!hasSharedStorage()) {
-                        query = String.format(DOC_WITH_BLOB_KEYS_QUERY, key);
-                    } else {
-                        // we must ensure that the blob is not referenced by any provider
-                        final String blobId = colon < 0 ? key : key.substring(colon + 1, key.length());
-                        List<String> keys = getBlobDispatcher().getBlobProviderIds().stream()
-                                                          .map(storage -> storage + ":" + blobId)
-                                                          .collect(Collectors.toList());
-                        keys.add(blobId);
-                        query = String.format(DOC_WITH_BLOB_KEYS_IN_QUERY, keys.stream()
-                                .map(k -> "'" + k + "'")
-                                .collect(Collectors.joining(", ")));
-                    }
+                    String query = String.format(DOC_WITH_BLOB_KEYS_IN_QUERY,
+                            queryBlobKeys.stream().collect(Collectors.joining("', '")));
                     PartialList<Map<String, Serializable>> res = session.queryProjection(query, 1, 0);
                     return res.isEmpty();
                 }));

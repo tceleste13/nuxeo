@@ -1,15 +1,13 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.ecm.core.blob.test-blob-delete" version="1.0.0">
+<component name="org.nuxeo.ecm.core.blob.test-blob-delete-dispatch" version="1.0.0">
   <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
     <blobprovider name="first">
-      <class>org.nuxeo.ecm.core.blob.InMemoryBlobProvider</class>
-      <property name="path">first</property>
-      <property name="emulateLocalFile">true</property>
+      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
+      <property name="path">default</property>
     </blobprovider>
     <blobprovider name="second">
-      <class>org.nuxeo.ecm.core.blob.InMemoryBlobProvider</class>
+      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
       <property name="path">second</property>
-      <property name="emulateLocalFile">true</property>
     </blobprovider>
   </extension>
   <extension target="org.nuxeo.ecm.core.blob.DocumentBlobManager" point="configuration">

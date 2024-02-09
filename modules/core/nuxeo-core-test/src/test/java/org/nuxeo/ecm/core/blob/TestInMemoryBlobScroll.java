@@ -25,7 +25,7 @@ import org.nuxeo.runtime.test.runner.Deploy;
 /**
  * @since 2023
  */
-@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
+@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete-inmemory.xml")
 public class TestInMemoryBlobScroll extends AbstractTestBlobScroll {
 
     @Override
