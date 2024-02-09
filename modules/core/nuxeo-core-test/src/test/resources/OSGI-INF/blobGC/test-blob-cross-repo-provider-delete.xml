@@ -3,14 +3,12 @@
 
   <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
     <blobprovider name="first">
-      <class>org.nuxeo.ecm.core.blob.InMemoryBlobProvider</class>
+      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
       <property name="path">first</property>
-      <property name="emulateLocalFile">true</property>
     </blobprovider>
     <blobprovider name="second">
-      <class>org.nuxeo.ecm.core.blob.InMemoryBlobProvider</class>
+      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
       <property name="path">second</property>
-      <property name="emulateLocalFile">true</property>
     </blobprovider>
   </extension>
   <extension target="org.nuxeo.ecm.core.blob.DocumentBlobManager" point="configuration">

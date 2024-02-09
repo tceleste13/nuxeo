@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.ecm.core.blob.test-blob-delete" version="1.0.0">
+<component name="org.nuxeo.ecm.core.blob.test-blob-delete-inmem" version="1.0.0">
   <require>org.nuxeo.ecm.core.test.blobmanager</require>
   <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
     <blobprovider name="test">
-      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
-      <property name="path">default</property>
+      <class>org.nuxeo.ecm.core.blob.InMemoryBlobProvider</class>
+      <property name="emulateLocalFile">true</property>
     </blobprovider>
   </extension>
 </component>

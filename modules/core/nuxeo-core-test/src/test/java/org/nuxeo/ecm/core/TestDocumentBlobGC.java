@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import javax.inject.Inject;
 
@@ -41,6 +42,8 @@ import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
+import org.nuxeo.ecm.core.api.impl.DocumentModelImpl;
+import org.nuxeo.ecm.core.blob.BlobInfo;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
@@ -51,6 +54,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.HotDeployer;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
@@ -69,6 +73,9 @@ public class TestDocumentBlobGC {
 
     @Inject
     protected DocumentBlobManager documentBlobManager;
+
+    @Inject
+    protected HotDeployer hotDeployer;
 
     @Test
     @WithFrameworkProperty(name = StreamOrphanBlobGC.ENABLED_PROPERTY_NAME, value = "false")
@@ -253,6 +260,46 @@ public class TestDocumentBlobGC {
         assertFalse(session.exists(ref));
 
         assertNull(blobProvider.getFile(blob));
+    }
+
+    @Test
+    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
+    public void testDeleteBlobAfterRemoveDocumentWithPrefixAndUnprefixedKey() throws IOException {
+        assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
+        // Create a doc referencing a blob
+        DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
+        doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("toBeRemoved"));
+        doc = session.createDocument(doc);
+        session.save();
+        DocumentRef ref = doc.getRef();
+        ManagedBlob blob = (ManagedBlob) session.getDocument(ref).getPropertyValue("file:content");
+        String blobProviderId = blob.getProviderId();
+        BlobProvider blobProvider = Framework.getService(BlobManager.class).getBlobProvider(blobProviderId);
+
+        // Let's create another doc referencing the same blob but prefixed with default providerId
+        BlobInfo blobInfo = new BlobInfo();
+        blobInfo.key = blobProviderId + ":" + blob.getDigest();
+        blobInfo.filename = blob.getFilename();
+        blobInfo.mimeType = blob.getMimeType();
+        blobInfo.length = blob.getLength();
+        Blob b = blobProvider.readBlob(blobInfo);
+        DocumentModel doc2 = session.createDocumentModel("/", "doc2", "File");
+        doc2.setPropertyValue("file:content", (Serializable) b);
+        ((DocumentModelImpl) doc2).setId(UUID.randomUUID().toString());
+        session.importDocuments(List.of(doc2));
+        session.save();
+        DocumentRef ref2 = doc2.getRef();
+        ManagedBlob blob2 = (ManagedBlob) session.getDocument(ref2).getPropertyValue("file:content");
+
+        assertEquals(blob.getKey(), blob2.getKey());
+        // Let's remove the first doc
+        session.removeDocument(ref);
+        coreFeature.waitForAsyncCompletion();
+        assertFalse(session.exists(ref));
+
+        // Blob should still exist
+        assertNotNull(blobProvider.getFile(blob));
+        assertNotNull(blobProvider.getFile(blob2));
     }
 
     @Test
@@ -449,6 +496,44 @@ public class TestDocumentBlobGC {
         session.removeDocument(doc1.getRef());
         coreFeature.waitForAsyncCompletion();
         // Assert blob2 still exists
+        assertNotNull(blobProvider2.getFile(blob2));
+    }
+
+    @Test
+    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
+    public void testDeleteBlobAfterDeployDipatcherRules() throws Exception {
+        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
+        Blob b = Blobs.createBlob("toNotBeRemoved");
+        DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
+        doc1.setPropertyValue("file:content", (Serializable) b);
+        doc1 = session.createDocument(doc1);
+        session.save();
+        DocumentRef ref1 = doc1.getRef();
+
+        ManagedBlob blob1 = (ManagedBlob) session.getDocument(ref1).getPropertyValue("file:content");
+        BlobProvider blobProvider1 = Framework.getService(BlobManager.class).getBlobProvider(blob1.getProviderId());
+        assertNotNull(blobProvider1.getFile(blob1));
+
+        hotDeployer.deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-dispatcher-delete.xml");
+
+        DocumentModel doc2 = session.createDocumentModel("/", "doc2", "File");
+        doc2.setPropertyValue("file:content", (Serializable) b);
+        doc2 = session.createDocument(doc2);
+        session.save();
+        DocumentRef ref2 = doc2.getRef();
+
+        ManagedBlob blob2 = (ManagedBlob) session.getDocument(ref2).getPropertyValue("file:content");
+        // blob2 key is prefixed with default provider while blob1 is not because created when we had only 1 provider
+        assertEquals(blob2.getProviderId() + ":" + blob1.getKey(), blob2.getKey());
+        BlobProvider blobProvider2 = Framework.getService(BlobManager.class).getBlobProvider(blob2.getProviderId());
+        assertNotNull(blobProvider2.getFile(blob2));
+
+        session.removeDocument(ref2);
+        coreFeature.waitForAsyncCompletion();
+
+        assertTrue(session.exists(ref1));
+        assertFalse(session.exists(ref2));
+        assertNotNull(blobProvider1.getFile(blob1));
         assertNotNull(blobProvider2.getFile(blob2));
     }
 
