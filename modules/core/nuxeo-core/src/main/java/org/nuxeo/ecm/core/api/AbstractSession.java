@@ -1445,6 +1445,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         try {
             checkCanRemoveDocument(doc);
         } catch (NuxeoException e) {
+            log.warn(e::getMessage);
             return false;
         }
         return true;
