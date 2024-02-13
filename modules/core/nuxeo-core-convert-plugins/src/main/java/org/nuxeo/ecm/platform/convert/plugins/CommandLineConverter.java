@@ -144,6 +144,7 @@ public class CommandLineConverter extends CommandLineBasedConverter {
                 for (File file : files) {
                     try {
                         Blob blob = Blobs.createBlob(file);
+                        Framework.trackFile(file, blob);
                         blob.setFilename(file.getName());
                         blobs.add(blob);
                     } catch (IOException e) {
@@ -152,8 +153,6 @@ public class CommandLineConverter extends CommandLineBasedConverter {
                 }
             }
         }
-        // Mark the temporary folder for deletion, forcing its deletion if not empty
-        Framework.trackDirectory(outputDir, blobs);
         return new SimpleCachableBlobHolder(blobs);
     }
 
