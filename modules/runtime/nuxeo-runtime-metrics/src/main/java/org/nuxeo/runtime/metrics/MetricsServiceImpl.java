@@ -24,6 +24,7 @@ import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
 import java.lang.management.ManagementFactory;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.management.MalformedObjectNameException;
@@ -115,7 +116,13 @@ public class MetricsServiceImpl extends DefaultComponent implements MetricsServi
                                    .filter(MetricsReporterDescriptor::isEnabled)
                                    .map(MetricsReporterDescriptor::newInstance)
                                    .collect(Collectors.toList());
-        reporters.forEach(reporter -> reporter.start(registry, config, config.getDeniedExpansions()));
+        String filterName = Framework.getProperty("metrics.filter.name");
+        MetricsConfigurationDescriptor.FilterDescriptor filter = Objects.requireNonNullElseGet(
+                config.getFilter(filterName), config::getDefaultFilter);
+        if (filterName != null && !filterName.equals(filter.getId())) {
+            log.warn("Metric filter: {} not found, using: {}.", filterName, filter.getId());
+        }
+        reporters.forEach(reporter -> reporter.start(registry, filter, filter.getDeniedExpansions()));
     }
 
     @Override

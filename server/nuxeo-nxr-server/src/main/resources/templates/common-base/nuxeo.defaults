@@ -282,6 +282,7 @@ nuxeo.jwt.defaultTTL=3600
 
 # Metrics
 metrics.enabled=false
+metrics.filter.name=default
 
 ## Instrumentation
 metrics.streams.enabled=true
