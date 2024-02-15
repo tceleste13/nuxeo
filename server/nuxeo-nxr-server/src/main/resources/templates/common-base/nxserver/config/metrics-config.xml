@@ -85,6 +85,7 @@
       <option name="host">${metrics.datadog.host}</option>
       <option name="port">${metrics.datadog.port}</option>
       <option name="tags">${metrics.datadog.tags}</option>
+      <option name="emptyTimerAsCount">${metrics.datadog.emptyTimerAsCount}</option>
     </reporter>
 
     <reporter enabled="${metrics.prometheus.enabled}" name="prometheus"

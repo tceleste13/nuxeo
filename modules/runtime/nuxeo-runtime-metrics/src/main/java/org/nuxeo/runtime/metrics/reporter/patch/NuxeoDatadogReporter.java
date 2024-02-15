@@ -92,11 +92,13 @@ public class NuxeoDatadogReporter extends ScheduledReporter {
 
     private final String prefix;
 
+    private final boolean emptyTimerAsCount;
+
     private Transport.Request request;
 
     private NuxeoDatadogReporter(MetricRegistry metricRegistry, Transport transport, MetricFilter filter, Clock clock,
-                                 String host, EnumSet<Expansion> expansions, TimeUnit rateUnit, TimeUnit durationUnit,
-                                 MetricNameFormatter metricNameFormatter, List<String> tags, String prefix) {
+            String host, EnumSet<Expansion> expansions, TimeUnit rateUnit, TimeUnit durationUnit,
+            MetricNameFormatter metricNameFormatter, List<String> tags, String prefix, boolean emptyTimerAsCoutner) {
         super(metricRegistry, "datadog-reporter", filter, rateUnit, durationUnit);
         this.clock = clock;
         this.host = host;
@@ -105,6 +107,7 @@ public class NuxeoDatadogReporter extends ScheduledReporter {
         this.tags = (tags == null) ? new ArrayList<>() : tags;
         this.transport = transport;
         this.prefix = prefix;
+        this.emptyTimerAsCount = emptyTimerAsCoutner;
     }
 
     @Override
@@ -153,6 +156,10 @@ public class NuxeoDatadogReporter extends ScheduledReporter {
     }
 
     private void reportTimer(String name, Timer timer, long timestamp, List<String> tags) throws IOException {
+        if (emptyTimerAsCount && timer.getCount() == 0) {
+            request.addGauge(new DatadogGauge(appendExpansionSuffix(name, Expansion.COUNT), 0, timestamp, host, tags));
+            return;
+        }
         final Snapshot snapshot = timer.getSnapshot();
 
         double[] values = { snapshot.getMax(), snapshot.getMean(), snapshot.getMin(), snapshot.getStdDev(),
@@ -300,6 +307,8 @@ public class NuxeoDatadogReporter extends ScheduledReporter {
 
         private String prefix;
 
+        private boolean emptyTimerAsCounter;
+
         public Builder(MetricRegistry registry) {
             this.registry = registry;
             this.expansions = Expansion.ALL;
@@ -384,6 +393,16 @@ public class NuxeoDatadogReporter extends ScheduledReporter {
             return this;
         }
 
+        /**
+         * Choose if an empty timer is reported as a counter to save custom metrics.
+         *
+         * @since 2023.8
+         */
+        public Builder emptyTimerAsCounter(boolean value) {
+            this.emptyTimerAsCounter = value;
+            return this;
+        }
+
         public NuxeoDatadogReporter build() {
             if (transport == null) {
                 throw new IllegalArgumentException(
@@ -391,7 +410,7 @@ public class NuxeoDatadogReporter extends ScheduledReporter {
             }
             return new NuxeoDatadogReporter(this.registry, this.transport, this.filter, this.clock, this.host,
                     this.expansions, this.rateUnit, this.durationUnit, this.metricNameFormatter, this.tags,
-                    this.prefix);
+                    this.prefix, this.emptyTimerAsCounter);
         }
     }
 }
