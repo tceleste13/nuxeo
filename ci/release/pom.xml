@@ -110,7 +110,17 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.packages</groupId>
+      <artifactId>nuxeo-mariadb-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.packages</groupId>
       <artifactId>nuxeo-microsoft-azure-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.packages</groupId>
+      <artifactId>nuxeo-mssql-package</artifactId>
       <type>zip</type>
     </dependency>
     <dependency>
@@ -120,7 +130,17 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.packages</groupId>
+      <artifactId>nuxeo-mysql-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.packages</groupId>
       <artifactId>nuxeo-openid-login-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.packages</groupId>
+      <artifactId>nuxeo-oracle-package</artifactId>
       <type>zip</type>
     </dependency>
     <dependency>
