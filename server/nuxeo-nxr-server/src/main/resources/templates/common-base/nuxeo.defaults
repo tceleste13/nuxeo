@@ -315,6 +315,7 @@ metrics.datadog.hostname=
 metrics.datadog.udp=false
 metrics.datadog.host=localhost
 metrics.datadog.port=8125
+metrics.datadog.emptyTimerAsCount=false
 
 ## Prometheus reporter
 metrics.prometheus.enabled=false

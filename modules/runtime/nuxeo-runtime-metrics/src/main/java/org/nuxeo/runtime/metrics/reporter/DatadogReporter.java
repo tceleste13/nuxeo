@@ -89,11 +89,13 @@ public class DatadogReporter extends AbstractMetricsReporter {
             log.warn("Connecting using HTTP transport using apiKey reporting every {}s from {}", pollInterval,
                     hostname);
         }
+        boolean emptyTimerAsCount = getOptionAsBoolean("emptyTimerAsCount", false);
         reporter = NuxeoDatadogReporter.forRegistry(registry)
                                        .withHost(hostname)
                                        .withTags(tags)
                                        .withTransport(transport)
                                        .withExpansions(getExpansions(deniedExpansions))
+                                       .emptyTimerAsCounter(emptyTimerAsCount)
                                        .filter(filter)
                                        .withMetricNameFormatter(new DefaultMetricNameFormatter())
                                        .build();
