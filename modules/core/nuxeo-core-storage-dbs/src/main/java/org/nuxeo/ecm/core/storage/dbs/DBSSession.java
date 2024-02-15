@@ -1406,6 +1406,10 @@ public class DBSSession extends BaseSession {
         for (Serializable aclSer : aclList) {
             State aclMap = (State) aclSer;
             String name = (String) aclMap.get(KEY_ACL_NAME);
+            if (name == null) {
+                log.warn("An ACL without name has been detected on document: {}, continuing", docId);
+                continue;
+            }
             @SuppressWarnings("unchecked")
             List<Serializable> aceList = (List<Serializable>) aclMap.get(KEY_ACL);
             if (aceList == null) {
