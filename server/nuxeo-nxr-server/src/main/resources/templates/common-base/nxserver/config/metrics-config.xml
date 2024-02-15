@@ -6,7 +6,7 @@
       <instrument name="jvm" enabled="${metrics.jvm.enabled}" />
       <instrument name="log4j" enabled="${metrics.log4j.enabled}" />
       <instrument name="tomcat" enabled="${metrics.tomcat.enabled}" />
-      <filter>
+      <filter name="default">
         <allow>
           <prefix>nuxeo.cache.default-cache.</prefix>
           <prefix>nuxeo.cache.user-entry-cache.</prefix>
@@ -18,14 +18,44 @@
           <prefix>nuxeo.cache</prefix>
           <prefix>nuxeo.directories</prefix>
           <prefix>nuxeo.ActionService</prefix>
-          <prefix>org.apache.logging.log4j.core.Appender.debug.count</prefix>
-          <prefix>org.apache.logging.log4j.core.Appender.info</prefix>
-          <prefix>org.apache.logging.log4j.core.Appender.debug</prefix>
           <prefix>org.apache.logging.log4j.core.Appender.trace</prefix>
+          <prefix>org.apache.logging.log4j.core.Appender.debug</prefix>
+          <prefix>org.apache.logging.log4j.core.Appender.info</prefix>
           <prefix>org.nuxeo.ecm.core.management.standby.StandbyComponent</prefix>
           <!-- Timer expansion to remove -->
           <expansion>stddev</expansion>
           <expansion>p75</expansion>
+          <expansion>p98</expansion>
+          <expansion>p999</expansion>
+          <expansion>m5_rate</expansion>
+          <expansion>m15_rate</expansion>
+          <expansion>mean_rate</expansion>
+        </deny>
+      </filter>
+      <filter name="minimal">
+        <allow>
+          <prefix>jvm.threads</prefix>
+          <prefix>jvm.memory.heap</prefix>
+          <prefix>jvm.memory.total</prefix>
+          <prefix>jvm.garbage.G1_Old_Generation.time</prefix>
+          <prefix>jvm.garbage.G1_Young_Generation.time</prefix>
+        </allow>
+        <deny>
+          <prefix>jvm.</prefix>
+          <prefix>nuxeo.cache</prefix>
+          <prefix>nuxeo.work.queue</prefix>
+          <prefix>nuxeo.directories</prefix>
+          <prefix>nuxeo.ActionService</prefix>
+          <prefix>org.apache.logging.log4j.core.Appender.trace</prefix>
+          <prefix>org.apache.logging.log4j.core.Appender.info</prefix>
+          <prefix>org.apache.logging.log4j.core.Appender.debug</prefix>
+          <prefix>org.nuxeo.ecm.core.management.standby.StandbyComponent</prefix>
+          <!-- Timer expansion to remove -->
+          <expansion>stddev</expansion>
+          <expansion>min</expansion>
+          <expansion>p50</expansion>
+          <expansion>p75</expansion>
+          <expansion>p95</expansion>
           <expansion>p98</expansion>
           <expansion>p999</expansion>
           <expansion>m5_rate</expansion>

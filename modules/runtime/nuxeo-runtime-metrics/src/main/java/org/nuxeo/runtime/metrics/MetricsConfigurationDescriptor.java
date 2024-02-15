@@ -40,6 +40,8 @@ public class MetricsConfigurationDescriptor implements Descriptor, MetricFilter 
 
     protected static final String ALL_METRICS = "ALL";
 
+    protected static final FilterDescriptor NO_FILTER = new FilterDescriptor();
+
     @Override
     public String getId() {
         return UNIQUE_DESCRIPTOR_ID;
@@ -47,6 +49,49 @@ public class MetricsConfigurationDescriptor implements Descriptor, MetricFilter 
 
     @XNode("@enabled")
     protected boolean isEnabled = true;
+
+    /**
+     * Returns the filter matching the name or null if not found.
+     *
+     * @since 2023.8
+     */
+    public FilterDescriptor getFilter(String name) {
+        if (name == null) {
+            return null;
+        }
+        return filters.stream().filter(f -> name.equals(f.getId())).findFirst().orElse(null);
+    }
+
+    /**
+     * Returns the legacy or default filter.
+     *
+     * @since 2023.8
+     */
+    public FilterDescriptor getDefaultFilter() {
+        // Legacy contrib contains a single filter without name
+        FilterDescriptor ret = getFilter(UNIQUE_DESCRIPTOR_ID);
+        if (ret != null) {
+            return ret;
+        }
+        ret = getFilter(FilterDescriptor.DEFAULT_ID);
+        if (ret != null) {
+            return ret;
+        }
+        return NO_FILTER;
+    }
+
+    // @deprecated use directly filter implementation.
+    @Deprecated(since = "2023.8", forRemoval = true)
+    @Override
+    public boolean matches(MetricName name, Metric metric) {
+        return getDefaultFilter().matches(name, metric);
+    }
+
+    // @deprecated use directly filter implementation.
+    @Deprecated(since = "2023.8", forRemoval = true)
+    public Set<MetricAttribute> getDeniedExpansions() {
+        return getDefaultFilter().getDeniedExpansions();
+    }
 
     @XObject(value = "instrument")
     public static class InstrumentDescriptor implements Descriptor {
@@ -71,7 +116,18 @@ public class MetricsConfigurationDescriptor implements Descriptor, MetricFilter 
     protected List<InstrumentDescriptor> instruments = new ArrayList<>();
 
     @XObject(value = "filter")
-    public static class FilterDescriptor {
+    public static class FilterDescriptor implements Descriptor, MetricFilter {
+
+        protected static final String DEFAULT_ID = "default";
+
+        // @since 2023.8
+        @XNode("@name")
+        protected String name = UNIQUE_DESCRIPTOR_ID;
+
+        @Override
+        public String getId() {
+            return name;
+        }
 
         @XNodeList(value = "allow/prefix", type = ArrayList.class, componentType = String.class)
         protected List<String> allowedPrefix = new ArrayList<>();
@@ -98,10 +154,18 @@ public class MetricsConfigurationDescriptor implements Descriptor, MetricFilter 
                                    .map(expansion -> MetricAttribute.valueOf(expansion.toUpperCase().strip()))
                                    .collect(Collectors.toSet());
         }
+
+        @Override
+        public boolean matches(MetricName name, Metric metric) {
+            String expandedName = expandName(name);
+            return allowedPrefix.stream().anyMatch(f -> ALL_METRICS.equals(f) || expandedName.startsWith(f))
+                    || deniedPrefix.stream().noneMatch(f -> ALL_METRICS.equals(f) || expandedName.startsWith(f));
+        }
+
     }
 
-    @XNode(value = "filter")
-    protected FilterDescriptor filter = new FilterDescriptor();
+    @XNodeList(value = "filter", type = ArrayList.class, componentType = FilterDescriptor.class)
+    protected List<FilterDescriptor> filters = new ArrayList<>();
 
     public static String expandName(MetricName metric) {
         if (metric.getTags().isEmpty()) {
@@ -114,17 +178,6 @@ public class MetricsConfigurationDescriptor implements Descriptor, MetricFilter 
             name = name.replace(key, keyAndValue);
         }
         return name;
-    }
-
-    @Override
-    public boolean matches(MetricName name, Metric metric) {
-        String expandedName = expandName(name);
-        return filter.allowedPrefix.stream().anyMatch(f -> ALL_METRICS.equals(f) || expandedName.startsWith(f))
-                || filter.deniedPrefix.stream().noneMatch(f -> ALL_METRICS.equals(f) || expandedName.startsWith(f));
-    }
-
-    public Set<MetricAttribute> getDeniedExpansions() {
-        return filter.getDeniedExpansions();
     }
 
     public boolean isEnabled() {
