@@ -177,6 +177,7 @@ public class BulkScrollerComputation extends AbstractComputation {
             final long queryLimit = getQueryLimit(command);
             boolean limitReached = false;
             boolean bigBulkCommand = false;
+            String action = command.getAction();
             scrollLoop: try (Scroll scroll = buildScroll(command)) {
                 while (scroll.hasNext()) {
                     if (isAbortedCommand(commandId)) {
@@ -199,8 +200,9 @@ public class BulkScrollerComputation extends AbstractComputation {
                     }
                     documentCount += scrollCount;
                     if (!bigBulkCommand && documentCount > BIG_BULK_COMMAND_THRESHOLD) {
-                        log.warn("BBC: {} (Big Bulk Command) detected, scrolling more than {} items: {}.", commandId,
-                                BIG_BULK_COMMAND_THRESHOLD, command);
+                        log.warn(
+                                "BBC: {} (Big Bulk Command) detected for action: {}, scrolling more than {} items: {}.",
+                                commandId, action, BIG_BULK_COMMAND_THRESHOLD, command);
                         bigBulkCommand = true;
                     }
                     if (limitReached) {
@@ -220,7 +222,7 @@ public class BulkScrollerComputation extends AbstractComputation {
                 updateStatusAfterScroll(context, commandId, documentCount, limitReached);
             }
             if (bigBulkCommand) {
-                log.warn("BBC: {} scroll done: {} items.", commandId, documentCount);
+                log.warn("BBC: {} for action: {} scroll done: {} items.", commandId, action, documentCount);
             }
         } catch (IllegalArgumentException | QueryParseException | DocumentNotFoundException e) {
             log.error("Invalid query results in an empty document set: {}", command, e);

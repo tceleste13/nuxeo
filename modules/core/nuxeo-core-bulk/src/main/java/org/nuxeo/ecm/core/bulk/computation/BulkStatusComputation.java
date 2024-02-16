@@ -79,7 +79,7 @@ public class BulkStatusComputation extends AbstractComputation {
         if (status.getState() == COMPLETED || recordStatus.getState() == ABORTED) {
             context.produceRecord(OUTPUT_1, status.getId(), statusAsBytes);
             if (status.getTotal() > BIG_BULK_COMMAND_THRESHOLD) {
-                log.warn("BBC: {} command completed: {}.", status.getId(), status);
+                log.warn("BBC: {} for action: {} command completed: {}.", status.getId(), status.getAction(), status);
             }
         }
         context.askForCheckpoint();
