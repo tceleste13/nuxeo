@@ -71,10 +71,28 @@ public class GarbageCollectOrphanBlobsAction implements StreamProcessorTopology 
 
     public static class GarbageCollectOrphanBlobsComputation extends AbstractBulkComputation {
 
+        /**
+         * @since 2023.8
+         */
+        public static final String SAMPLE_MODULO_PROPERTY = "nuxeo.bulk.action.garbageCollectOrphanBlobs.sample.modulo";
+
         protected boolean dryRun;
+
+        protected long sampleCounter;
+
+        protected long sampleModulo = Long.MAX_VALUE;
 
         public GarbageCollectOrphanBlobsComputation() {
             super(ACTION_FULL_NAME);
+            var sampleModuloPropValue = Framework.getProperty(SAMPLE_MODULO_PROPERTY);
+            if (sampleModuloPropValue != null) {
+                try {
+                    sampleModulo = Long.parseLong(sampleModuloPropValue);
+                } catch (NumberFormatException e) {
+                    log.error("Invalid {} value: {}:", SAMPLE_MODULO_PROPERTY, sampleModuloPropValue);
+                }
+            }
+
         }
 
         @Override
@@ -100,6 +118,10 @@ public class GarbageCollectOrphanBlobsAction implements StreamProcessorTopology 
                         deletedSize += size;
                     } else {
                         delta.incrementSkipCount();
+                    }
+                    if (dryRun && deleted && ++sampleCounter % sampleModulo == 0) {
+                        log.warn("dryRun sample: GC would have deleted blob: {} of size {}.", () -> key,
+                                () -> FileUtils.byteCountToDisplaySize(size));
                     }
                     log.trace("CommandId: {} Blob: {} of size: {} from repository: {} deleted: {} dryRun: {}",
                             () -> getCurrentCommand().getId(), () -> key, () -> FileUtils.byteCountToDisplaySize(size),
