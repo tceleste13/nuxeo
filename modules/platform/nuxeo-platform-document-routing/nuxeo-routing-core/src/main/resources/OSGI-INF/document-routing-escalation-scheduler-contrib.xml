@@ -15,8 +15,8 @@
   </extension>
 
   <extension target="org.nuxeo.ecm.core.bulk" point="actions">
-    <action name="documentRoutingEscalation" inputStream="bulk/documentRoutingEscalation" bucketSize="100"
-      batchSize="25" exclusive="true" />
+    <action name="documentRoutingEscalation" inputStream="bulk/documentRoutingEscalation" bucketSize="25"
+      batchSize="5" exclusive="true" />
   </extension>
 
   <extension target="org.nuxeo.runtime.stream.service" point="streamProcessor">
