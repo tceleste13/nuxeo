@@ -19,12 +19,15 @@
 package org.nuxeo.ecm.core.bulk;
 
 import org.junit.Test;
+import org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.GarbageCollectOrphanBlobsComputation;
 import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 2023
  */
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
+@WithFrameworkProperty(name = GarbageCollectOrphanBlobsComputation.SAMPLE_MODULO_PROPERTY, value = "1")
 public class TestFullGCOrphanBlobs extends AbstractTestFullGCOrphanBlobs {
 
     @Test
