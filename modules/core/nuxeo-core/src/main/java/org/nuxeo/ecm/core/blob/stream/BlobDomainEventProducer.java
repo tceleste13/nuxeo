@@ -18,11 +18,14 @@
  */
 package org.nuxeo.ecm.core.blob.stream;
 
+import static org.nuxeo.ecm.core.blob.DocumentBlobManagerComponent.BLOBS_CANDIDATE_FOR_DELETION_EVENT;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.impl.BlobEventContext;
@@ -43,6 +46,8 @@ public class BlobDomainEventProducer extends DomainEventProducer {
 
     protected static final String SOURCE_NAME = "BLOB"; // Blob Domain Event Producer
 
+    protected static final String EMPTY_PNG = "empty_picture.png";
+
     protected final Codec<BlobDomainEvent> codec;
 
     protected final List<Record> records = new ArrayList<>();
@@ -58,7 +63,16 @@ public class BlobDomainEventProducer extends DomainEventProducer {
         if (!(ctx instanceof BlobEventContext)) {
             return;
         }
-        records.add(buildRecordFromEvent(event.getName(), (BlobEventContext) ctx));
+        BlobEventContext context = (BlobEventContext) ctx;
+        if (exclude(event.getName(), context.getBlob())) {
+            return;
+        }
+        records.add(buildRecordFromEvent(event.getName(), context));
+    }
+
+    protected boolean exclude(String event, ManagedBlob blob) {
+        // Don't send event for internal picture placeholder
+        return BLOBS_CANDIDATE_FOR_DELETION_EVENT.equals(event) && blob != null && EMPTY_PNG.equals(blob.getFilename());
     }
 
     protected Record buildRecordFromEvent(String name, BlobEventContext ctx) {
