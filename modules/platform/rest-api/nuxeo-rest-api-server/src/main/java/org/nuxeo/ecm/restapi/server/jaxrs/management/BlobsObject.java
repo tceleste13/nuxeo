@@ -33,6 +33,7 @@ import org.nuxeo.ecm.core.api.ConcurrentUpdateException;
 import org.nuxeo.ecm.core.blob.scroll.RepositoryBlobScroll;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
+import org.nuxeo.ecm.core.bulk.message.BulkCommand.Builder;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
@@ -53,16 +54,20 @@ public class BlobsObject extends AbstractResource<ResourceTypeImpl> {
      */
     @DELETE
     @Path("orphaned")
-    public BulkStatus garbageCollectBlobs(@QueryParam(value = DRY_RUN_PARAM) boolean dryRun) {
+    public BulkStatus garbageCollectBlobs(@QueryParam(value = DRY_RUN_PARAM) boolean dryRun,
+            @QueryParam(value = "queryLimit") long queryLimit) {
         String repository = ctx.getCoreSession().getRepositoryName();
         BulkService bulkService = Framework.getService(BulkService.class);
-        BulkCommand command = new BulkCommand.Builder(ACTION_NAME, repository,
+        Builder builder = new Builder(ACTION_NAME, repository,
                 SYSTEM_USERNAME).repository(repository)
                                 .useGenericScroller()
                                 .param(DRY_RUN_PARAM, dryRun)
                                 .setExclusive(true)
-                                .scroller(RepositoryBlobScroll.SCROLL_NAME)
-                                .build();
+                                .scroller(RepositoryBlobScroll.SCROLL_NAME);
+        if (queryLimit > 0) {
+            builder.queryLimit(queryLimit);
+        }
+        BulkCommand command = builder.build();
         try {
             String commandId = bulkService.submit(command);
             return bulkService.getStatus(commandId);
