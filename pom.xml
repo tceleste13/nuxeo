@@ -1957,9 +1957,19 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.packages</groupId>
+        <artifactId>nuxeo-mariadb-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.packages</groupId>
         <artifactId>nuxeo-microsoft-azure-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.packages</groupId>
+        <artifactId>nuxeo-mssql-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
         <groupId>org.nuxeo.packages</groupId>
@@ -1969,9 +1979,19 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.packages</groupId>
+        <artifactId>nuxeo-mysql-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.packages</groupId>
         <artifactId>nuxeo-openid-login-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.packages</groupId>
+        <artifactId>nuxeo-oracle-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
         <groupId>org.nuxeo.packages</groupId>
