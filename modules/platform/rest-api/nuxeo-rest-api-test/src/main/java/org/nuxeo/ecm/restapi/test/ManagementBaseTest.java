@@ -97,7 +97,7 @@ public abstract class ManagementBaseTest {
     }
 
     protected void assertBulkStatusCompleted(JsonNode bulkStatus) {
-        assertEquals(BulkStatus.State.COMPLETED.name(), bulkStatus.get("state").asText());
+        assertEquals(bulkStatus.toString(), BulkStatus.State.COMPLETED.name(), bulkStatus.get("state").asText());
         Instant completed = Instant.parse(bulkStatus.get("completed").asText());
         assertTrue(completed.isBefore(Instant.now()));
         assertNotNull(bulkStatus.get("processingMillis"));
