@@ -2477,7 +2477,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.poi</groupId>
-        <artifactId>poi-ooxml-schemas</artifactId>
+        <artifactId>poi-ooxml-lite</artifactId>
         <version>${apache.poi.version}</version>
       </dependency>
       <dependency>
