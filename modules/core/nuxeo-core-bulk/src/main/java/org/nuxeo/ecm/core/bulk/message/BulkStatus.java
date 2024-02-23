@@ -223,7 +223,7 @@ public class BulkStatus implements AsyncStatus<String> {
         if (update.getAction() != null && getAction() == null) {
             setAction(update.action);
         }
-        if (update.result != null) {
+        if (update.result != null && !update.result.isEmpty()) {
             setResult(update.result);
         }
         if (update.getUsername() != null && getUsername() == null) {

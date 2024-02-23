@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.core.bulk;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -93,4 +94,48 @@ public class TestBulkStatus {
         assertEquals(1, actual);
     }
 
+
+    @Test
+    public void testMergeResult() {
+        String commandId = "1234";
+        long bigValue = 2147483647L;
+        BulkStatus status = new BulkStatus(commandId);
+        status.setState(BulkStatus.State.SCHEDULED);
+        Map<String, Serializable> map = new HashMap<>();
+        map.put(COUNT_VAR_NAME, bigValue);
+        status.setResult(map);
+
+        assertEquals(BulkStatus.State.SCHEDULED, status.getState());
+        assertEquals(bigValue, status.getResult().get(COUNT_VAR_NAME));
+
+        // updating state without touching result
+        BulkStatus delta = BulkStatus.deltaOf(commandId);
+        delta.setState(BulkStatus.State.RUNNING);
+        status.merge(delta);
+
+        assertEquals(BulkStatus.State.RUNNING, status.getState());
+        assertEquals(bigValue, status.getResult().get(COUNT_VAR_NAME));
+
+        // overriding result
+        delta = BulkStatus.deltaOf(commandId);
+        map = new HashMap<>();
+        map.put("foo", bigValue);
+        delta.setResult(map);
+        status.merge(delta);
+
+        assertEquals(BulkStatus.State.RUNNING, status.getState());
+        assertEquals(bigValue, status.getResult().get("foo"));
+        assertNull(status.getResult().get(COUNT_VAR_NAME));
+
+        // merging result
+        delta = BulkStatus.deltaOf(commandId);
+        map = new HashMap<>();
+        map.put(COUNT_VAR_NAME, bigValue);
+        map.put("foo", 1);
+        delta.mergeResult(map);
+        status.merge(delta);
+
+        assertEquals(bigValue + 1, status.getResult().get("foo"));
+        assertEquals(bigValue, status.getResult().get(COUNT_VAR_NAME));
+    }
 }
