@@ -192,6 +192,8 @@ public class TestVideosObject extends ManagementBaseTest {
             JsonNode node = mapper.readTree(entityStream);
             assertEquals(SC_OK, response.getStatus());
             assertBulkStatusCompleted(node);
+            // for visibility
+            txFeature.nextTransaction();
             DocumentModel doc = session.getDocument(docRef);
 
             @SuppressWarnings("unchecked")
